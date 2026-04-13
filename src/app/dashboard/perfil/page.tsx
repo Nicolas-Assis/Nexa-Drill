@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, Camera, ExternalLink, Check } from "lucide-react";
 import { perfilSchema, PerfilFormData } from "@/lib/validations";
-import { updatePerfurador, getPerfuradorPerfil } from "./actions";
+import { updatePerfurador, getPerfuradorPerfil, uploadLogo } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import {
   TIPOS_SERVICO_OPTIONS,
   TIPOS_SOLO_OPTIONS,
 } from "@/lib/constants";
-import { createClient } from "@/lib/supabase/client";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://nexadrill.com.br";
 
@@ -115,26 +114,19 @@ export default function PerfilPage() {
 
     setUploading(true);
 
-    const supabase = createClient();
-    const ext = file.name.split(".").pop();
-    const path = `${perfuradorId}-${Date.now()}.${ext}`;
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const { data, error } = await supabase.storage
-      .from("perfis")
-      .upload(path, file, { upsert: true });
+    const result = await uploadLogo(formData);
 
-    if (error) {
-      toast.error(`Erro ao fazer upload: ${error.message}`);
+    if (result.error || !result.url) {
+      toast.error(`Erro ao fazer upload: ${result.error}`);
       setUploading(false);
       return;
     }
 
-    const { data: publicData } = supabase.storage
-      .from("perfis")
-      .getPublicUrl(data.path);
-
-    setValue("logo_url", publicData.publicUrl);
-    setLogoPreview(publicData.publicUrl);
+    setValue("logo_url", result.url);
+    setLogoPreview(result.url);
     setUploading(false);
     toast.success("Logo atualizada!");
   }

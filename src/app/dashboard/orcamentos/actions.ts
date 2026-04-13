@@ -220,6 +220,13 @@ export async function deleteOrcamento(
   try {
     const { supabase, perfurador } = await getAuthenticatedPerfurador();
 
+    // Desvincular serviços associados antes de excluir
+    await supabase
+      .from("servicos")
+      .update({ orcamento_id: null })
+      .eq("orcamento_id", id)
+      .eq("perfurador_id", perfurador.id);
+
     const { error } = await supabase
       .from("orcamentos")
       .delete()

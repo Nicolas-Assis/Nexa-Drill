@@ -2,11 +2,12 @@
 
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import type { Perfurador } from "@/types";
 
 /**
  * Helper centralizado para obter o perfurador autenticado.
+ * Usa service role client para bypassar RLS (auth é via better-auth, não Supabase Auth).
  * Reutilize em todas as server actions que requerem autenticação.
  */
 export async function getAuthenticatedPerfurador() {
@@ -16,7 +17,7 @@ export async function getAuthenticatedPerfurador() {
     throw new Error("Não autenticado");
   }
 
-  const supabase = createClient();
+  const supabase = createServiceClient();
 
   const { data: perfurador, error: perfError } = await supabase
     .from("perfuradores")

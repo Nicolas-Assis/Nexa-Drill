@@ -84,7 +84,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-secondary-400 hover:bg-secondary-50 hover:text-secondary-600"
+            className="rounded-lg p-2.5 text-secondary-400 hover:bg-secondary-50 hover:text-secondary-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="h-5 w-5" />
           </button>
@@ -104,7 +104,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
+                  "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900",

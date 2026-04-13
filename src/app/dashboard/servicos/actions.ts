@@ -265,6 +265,53 @@ export async function getOrcamentosForSelect(): Promise<{
   }
 }
 
+export async function uploadServicoFoto(
+  servicoId: string,
+  formData: FormData,
+): Promise<{ url: string | null; error: string | null }> {
+  try {
+    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+
+    // Verify ownership
+    const { data: servico, error: checkError } = await supabase
+      .from("servicos")
+      .select("id")
+      .eq("id", servicoId)
+      .eq("perfurador_id", perfuradorId)
+      .single();
+
+    if (checkError || !servico)
+      return { url: null, error: "Serviço não encontrado" };
+
+    const file = formData.get("file") as File;
+    if (!file) return { url: null, error: "Nenhum arquivo enviado" };
+
+    if (file.size > 5 * 1024 * 1024) {
+      return { url: null, error: "A imagem deve ter no máximo 5MB" };
+    }
+
+    const ext = file.name.split(".").pop();
+    const path = `${servicoId}/${Date.now()}.${ext}`;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { data, error } = await supabase.storage
+      .from("servicos")
+      .upload(path, buffer, { contentType: file.type });
+
+    if (error) return { url: null, error: error.message };
+
+    const { data: publicData } = supabase.storage
+      .from("servicos")
+      .getPublicUrl(data.path);
+
+    return { url: publicData.publicUrl, error: null };
+  } catch (err) {
+    return { url: null, error: (err as Error).message };
+  }
+}
+
 export async function addServicoFoto(
   servicoId: string,
   fotoUrl: string,

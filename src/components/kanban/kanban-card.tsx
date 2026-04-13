@@ -56,7 +56,7 @@ export function KanbanCard({
                 e.stopPropagation();
                 setShowMenu(!showMenu);
               }}
-              className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-secondary-100 transition-all"
+              className="p-2 rounded opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-secondary-100 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <MoreVertical className="h-4 w-4 text-secondary-400" />
             </button>
@@ -76,7 +76,7 @@ export function KanbanCard({
                       setShowMenu(false);
                       onEdit?.(orcamento.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-sm text-secondary-700 hover:bg-secondary-50 flex items-center gap-2"
+                    className="w-full px-3 py-2.5 text-left text-sm text-secondary-700 hover:bg-secondary-50 flex items-center gap-2"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                     Editar
@@ -89,7 +89,7 @@ export function KanbanCard({
                       setShowMenu(false);
                       onDelete?.(orcamento.id);
                     }}
-                    className="w-full px-3 py-1.5 text-left text-sm text-danger hover:bg-danger-50 flex items-center gap-2"
+                    className="w-full px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-50 flex items-center gap-2"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Excluir

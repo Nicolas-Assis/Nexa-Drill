@@ -24,8 +24,11 @@ import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ServicoForm } from "@/components/servicos/servico-form";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { STATUS_SERVICO_OPTIONS } from "@/lib/constants";
-import { createClient } from "@/lib/supabase/client";
+import {
+  STATUS_SERVICO_OPTIONS,
+  SERVICO_LABELS,
+  SOLO_LABELS,
+} from "@/lib/constants";
 import {
   getServicoById,
   updateServico,
@@ -34,25 +37,12 @@ import {
   getOrcamentosForSelect,
   concluirServicoComReceita,
   cancelarServico,
+  uploadServicoFoto,
   addServicoFoto,
   removeServicoFoto,
   type ServicoCreateData,
 } from "../actions";
 import type { Servico, Cliente, Orcamento, StatusServico } from "@/types";
-
-const SERVICO_LABELS: Record<string, string> = {
-  perfuracao: "Perfuração",
-  manutencao: "Manutenção",
-  limpeza: "Limpeza",
-  bombeamento: "Bombeamento",
-};
-
-const SOLO_LABELS: Record<string, string> = {
-  rocha: "Rocha",
-  areia: "Areia",
-  argila: "Argila",
-  misto: "Misto",
-};
 
 type ServicoWithRelations = Servico & {
   cliente?: Cliente;
@@ -213,25 +203,18 @@ export default function ServicoDetalhePage({
 
     setUploadingPhoto(true);
 
-    const supabase = createClient();
-    const ext = file.name.split(".").pop();
-    const path = `${servico.id}/${Date.now()}.${ext}`;
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const { data, error } = await supabase.storage
-      .from("servicos")
-      .upload(path, file);
+    const uploadResult = await uploadServicoFoto(servico.id, formData);
 
-    if (error) {
-      toast.error("Erro ao fazer upload da imagem.");
+    if (uploadResult.error || !uploadResult.url) {
+      toast.error(uploadResult.error ?? "Erro ao fazer upload da imagem.");
       setUploadingPhoto(false);
       return;
     }
 
-    const { data: publicData } = supabase.storage
-      .from("servicos")
-      .getPublicUrl(data.path);
-
-    const result = await addServicoFoto(servico.id, publicData.publicUrl);
+    const result = await addServicoFoto(servico.id, uploadResult.url);
     setUploadingPhoto(false);
 
     if (result.error) {
@@ -562,7 +545,7 @@ export default function ServicoDetalhePage({
                   <Button
                     variant="danger"
                     size="sm"
-                    className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 h-8 w-8 p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     onClick={() => handleDeletePhoto(foto)}
                     disabled={deletingPhoto === foto}
                   >

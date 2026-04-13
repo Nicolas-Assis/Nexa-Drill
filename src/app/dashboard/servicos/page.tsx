@@ -282,7 +282,7 @@ export default function ServicosPage() {
             className="w-full pl-9 pr-3 h-9 rounded-lg border border-secondary-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
-        <div className="flex gap-1 rounded-lg border border-secondary-200 bg-secondary-50 p-1 h-9">
+        <div className="flex gap-1 rounded-lg border border-secondary-200 bg-secondary-50 p-1 h-9 overflow-x-auto">
           {(
             [
               { value: "todos", label: "Todos" },
@@ -296,7 +296,7 @@ export default function ServicosPage() {
               key={opt.value}
               onClick={() => setFilterStatus(opt.value)}
               className={cn(
-                "px-3 rounded-md text-xs font-medium transition-colors",
+                "px-3 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
                 filterStatus === opt.value
                   ? "bg-white text-secondary-900 shadow-sm"
                   : "text-secondary-500 hover:text-secondary-700",
@@ -308,126 +308,194 @@ export default function ServicosPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Tipo de Serviço</TableHead>
-                <TableHead>Local</TableHead>
-                <TableHead>Início</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="w-32">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
-                      <TableCell key={j}>
-                        <div className="h-4 bg-secondary-100 rounded animate-pulse" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
+      {/* Desktop Table */}
+      <div className="hidden md:block">
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center py-12 text-secondary-400"
-                  >
-                    {servicos.length === 0
-                      ? 'Nenhum serviço cadastrado. Clique em "Novo Serviço" para começar.'
-                      : "Nenhum serviço encontrado com os filtros aplicados."}
-                  </TableCell>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Tipo de Serviço</TableHead>
+                  <TableHead>Local</TableHead>
+                  <TableHead>Início</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="w-32">Ações</TableHead>
                 </TableRow>
-              ) : (
-                filtered.map((s) => (
-                  <TableRow key={s.id} className="hover:bg-secondary-50">
-                    <TableCell>
-                      <Link
-                        href={`/dashboard/servicos/${s.id}`}
-                        className="font-medium text-secondary-900 hover:text-primary transition-colors"
-                      >
-                        {s.cliente?.nome ?? "—"}
-                      </Link>
-                      {s.cliente?.cidade && (
-                        <span className="flex items-center gap-1 text-xs text-secondary-400 mt-0.5">
-                          <MapPin className="h-3 w-3" />
-                          {s.cliente.cidade}
-                          {s.cliente.estado ? `, ${s.cliente.estado}` : ""}
-                        </span>
-                      )}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 bg-secondary-100 rounded animate-pulse" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-12 text-secondary-400"
+                    >
+                      {servicos.length === 0
+                        ? 'Nenhum serviço cadastrado. Clique em "Novo Serviço" para começar.'
+                        : "Nenhum serviço encontrado com os filtros aplicados."}
                     </TableCell>
-                    <TableCell className="text-sm text-secondary-600">
-                      {s.orcamento?.tipo_servico
-                        ? (SERVICO_LABELS[s.orcamento.tipo_servico] ??
-                          s.orcamento.tipo_servico)
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-sm text-secondary-600 max-w-[160px] truncate">
-                      {s.endereco ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-sm text-secondary-600">
-                      {s.data_inicio ? (
+                  </TableRow>
+                ) : (
+                  filtered.map((s) => (
+                    <TableRow key={s.id} className="hover:bg-secondary-50">
+                      <TableCell>
+                        <Link
+                          href={`/dashboard/servicos/${s.id}`}
+                          className="font-medium text-secondary-900 hover:text-primary transition-colors"
+                        >
+                          {s.cliente?.nome ?? "—"}
+                        </Link>
+                        {s.cliente?.cidade && (
+                          <span className="flex items-center gap-1 text-xs text-secondary-400 mt-0.5">
+                            <MapPin className="h-3 w-3" />
+                            {s.cliente.cidade}
+                            {s.cliente.estado ? `, ${s.cliente.estado}` : ""}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-secondary-600">
+                        {s.orcamento?.tipo_servico
+                          ? (SERVICO_LABELS[s.orcamento.tipo_servico] ??
+                            s.orcamento.tipo_servico)
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-secondary-600 max-w-[160px] truncate">
+                        {s.endereco ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-secondary-600">
+                        {s.data_inicio ? (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {formatDate(s.data_inicio)}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(s.status)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium text-secondary-900">
+                        {getServicoValor(s) != null
+                          ? formatCurrency(getServicoValor(s)!)
+                          : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {s.status === "andamento" && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => abrirModalConcluir(s)}
+                                className="p-1.5 rounded text-secondary-400 hover:text-success hover:bg-success-50 transition-colors"
+                                title="Concluir serviço"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => confirmCancel(s.id)}
+                                className="p-1.5 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors"
+                                title="Cancelar serviço"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => confirmDelete(s.id)}
+                            disabled={deletingId === s.id}
+                            className="p-1.5 rounded text-secondary-300 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50"
+                            title="Excluir serviço"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="h-4 bg-secondary-100 rounded animate-pulse mb-2 w-3/4" />
+                <div className="h-3 bg-secondary-100 rounded animate-pulse w-1/2" />
+              </CardContent>
+            </Card>
+          ))
+        ) : filtered.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-secondary-400 text-sm">
+              {servicos.length === 0
+                ? 'Nenhum serviço cadastrado. Toque em "Novo Serviço" para começar.'
+                : "Nenhum serviço encontrado com os filtros aplicados."}
+            </CardContent>
+          </Card>
+        ) : (
+          filtered.map((s) => (
+            <Link key={s.id} href={`/dashboard/servicos/${s.id}`}>
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-secondary-900 truncate">
+                        {s.cliente?.nome ?? "Sem cliente"}
+                      </p>
+                      <p className="text-xs text-secondary-500">
+                        {s.orcamento?.tipo_servico
+                          ? (SERVICO_LABELS[s.orcamento.tipo_servico] ??
+                            s.orcamento.tipo_servico)
+                          : "—"}
+                      </p>
+                    </div>
+                    {getStatusBadge(s.status)}
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-3 text-secondary-500">
+                      {s.data_inicio && (
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3.5 w-3.5" />
                           {formatDate(s.data_inicio)}
                         </span>
-                      ) : (
-                        "—"
                       )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(s.status)}</TableCell>
-                    <TableCell className="text-right text-sm font-medium text-secondary-900">
+                      {s.cliente?.cidade && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {s.cliente.cidade}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-semibold text-secondary-900">
                       {getServicoValor(s) != null
                         ? formatCurrency(getServicoValor(s)!)
                         : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {s.status === "andamento" && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => abrirModalConcluir(s)}
-                              className="p-1.5 rounded text-secondary-400 hover:text-success hover:bg-success-50 transition-colors"
-                              title="Concluir serviço"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => confirmCancel(s.id)}
-                              className="p-1.5 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors"
-                              title="Cancelar serviço"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => confirmDelete(s.id)}
-                          disabled={deletingId === s.id}
-                          className="p-1.5 rounded text-secondary-300 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50"
-                          title="Excluir serviço"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))
+        )}
+      </div>
 
       {/* Create Modal */}
       <Dialog

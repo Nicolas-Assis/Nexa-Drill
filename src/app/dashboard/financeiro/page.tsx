@@ -325,137 +325,249 @@ export default function FinanceiroPage() {
         </Card>
       </div>
 
-      {/* Transactions Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              Lançamentos
-              {!loading && (
-                <span className="ml-2 text-sm font-normal text-secondary-400">
-                  ({lancamentos.length})
-                </span>
-              )}
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="w-20" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
-                      <TableCell key={j}>
-                        <div className="h-4 bg-secondary-100 rounded animate-pulse" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : paginated.length === 0 ? (
+      {/* Transactions — Desktop Table */}
+      <div className="hidden md:block">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>
+                Lançamentos
+                {!loading && (
+                  <span className="ml-2 text-sm font-normal text-secondary-400">
+                    ({lancamentos.length})
+                  </span>
+                )}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-12 text-secondary-400"
-                  >
-                    Nenhum lançamento encontrado para o período selecionado.
-                  </TableCell>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="w-20" />
                 </TableRow>
-              ) : (
-                paginated.map((l) => (
-                  <TableRow key={l.id}>
-                    <TableCell className="text-sm text-secondary-600">
-                      {formatDate(l.data)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={l.tipo === "receita" ? "success" : "danger"}
-                      >
-                        {l.tipo === "receita" ? "Receita" : "Despesa"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-secondary-600">
-                      {getCategoriaLabel(l.tipo, l.categoria)}
-                    </TableCell>
-                    <TableCell className="text-sm text-secondary-900 max-w-xs truncate">
-                      {l.descricao ?? "—"}
-                    </TableCell>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 bg-secondary-100 rounded animate-pulse" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : paginated.length === 0 ? (
+                  <TableRow>
                     <TableCell
+                      colSpan={6}
+                      className="text-center py-12 text-secondary-400"
+                    >
+                      Nenhum lançamento encontrado para o período selecionado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginated.map((l) => (
+                    <TableRow key={l.id}>
+                      <TableCell className="text-sm text-secondary-600">
+                        {formatDate(l.data)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={l.tipo === "receita" ? "success" : "danger"}
+                        >
+                          {l.tipo === "receita" ? "Receita" : "Despesa"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-secondary-600">
+                        {getCategoriaLabel(l.tipo, l.categoria)}
+                      </TableCell>
+                      <TableCell className="text-sm text-secondary-900 max-w-xs truncate">
+                        {l.descricao ?? "—"}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "text-right font-medium text-sm",
+                          l.tipo === "receita" ? "text-success" : "text-danger",
+                        )}
+                      >
+                        {l.tipo === "despesa" ? "− " : "+ "}
+                        {formatCurrency(l.valor)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setModal({ type: "edit", lancamento: l })
+                            }
+                            className="p-1.5 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 transition-colors"
+                            title="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => confirmDelete(l.id)}
+                            disabled={deletingId === l.id}
+                            className="p-1.5 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-secondary-100">
+                <p className="text-sm text-secondary-500">
+                  Página {page} de {totalPages}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Transactions — Mobile Cards */}
+      <div className="md:hidden space-y-2">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-sm font-semibold text-secondary-700">
+            Lançamentos
+            {!loading && (
+              <span className="ml-1 text-secondary-400 font-normal">
+                ({lancamentos.length})
+              </span>
+            )}
+          </h3>
+        </div>
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="h-4 bg-secondary-100 rounded animate-pulse mb-2 w-3/4" />
+                <div className="h-3 bg-secondary-100 rounded animate-pulse w-1/2" />
+              </CardContent>
+            </Card>
+          ))
+        ) : paginated.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-secondary-400 text-sm">
+              Nenhum lançamento encontrado para o período selecionado.
+            </CardContent>
+          </Card>
+        ) : (
+          paginated.map((l) => (
+            <Card key={l.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-secondary-900 text-sm truncate">
+                      {l.descricao ?? getCategoriaLabel(l.tipo, l.categoria)}
+                    </p>
+                    <p className="text-xs text-secondary-500 mt-0.5">
+                      {formatDate(l.data)} ·{" "}
+                      {getCategoriaLabel(l.tipo, l.categoria)}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p
                       className={cn(
-                        "text-right font-medium text-sm",
+                        "font-semibold text-sm",
                         l.tipo === "receita" ? "text-success" : "text-danger",
                       )}
                     >
                       {l.tipo === "despesa" ? "− " : "+ "}
                       {formatCurrency(l.valor)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setModal({ type: "edit", lancamento: l })
-                          }
-                          className="p-1.5 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 transition-colors"
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => confirmDelete(l.id)}
-                          disabled={deletingId === l.id}
-                          className="p-1.5 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50"
-                          title="Excluir"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-secondary-100">
-              <p className="text-sm text-secondary-500">
-                Página {page} de {totalPages}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  Próxima
-                </Button>
-              </div>
+                    </p>
+                    <Badge
+                      variant={l.tipo === "receita" ? "success" : "danger"}
+                      className="mt-1"
+                    >
+                      {l.tipo === "receita" ? "Receita" : "Despesa"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-secondary-100">
+                  <button
+                    type="button"
+                    onClick={() => setModal({ type: "edit", lancamento: l })}
+                    className="p-2 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Editar"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => confirmDelete(l.id)}
+                    disabled={deletingId === l.id}
+                    className="p-2 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    title="Excluir"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {/* Mobile Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-sm text-secondary-500">
+              {page}/{totalPages}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Próxima
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
 
       {/* Create / Edit Modal */}
       <Dialog
