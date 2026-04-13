@@ -25,7 +25,6 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [perfuradorId, setPerfuradorId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -80,7 +79,6 @@ export default function PerfilPage() {
       return;
     }
     const p = result.perfurador;
-    setPerfuradorId(p.id);
     setLogoPreview(p.logo_url);
     reset({
       nome: p.nome ?? "",
