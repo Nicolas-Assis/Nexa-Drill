@@ -246,6 +246,7 @@ export function OrcamentoPDF({
         <View style={s.headerRow}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             {perfurador.logo_url && (
+              // eslint-disable-next-line jsx-a11y/alt-text
               <Image src={perfurador.logo_url} style={s.logo} />
             )}
             <View>

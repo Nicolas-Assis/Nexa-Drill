@@ -35,6 +35,16 @@ export async function uploadLogo(
       .from("perfis")
       .getPublicUrl(data.path);
 
+    // Auto-save logo_url to the database so it persists on reload
+    const { error: updateError } = await supabase
+      .from("perfuradores")
+      .update({ logo_url: publicData.publicUrl })
+      .eq("id", perfuradorId);
+
+    if (updateError) {
+      return { url: null, error: updateError.message };
+    }
+
     return { url: publicData.publicUrl, error: null };
   } catch (err) {
     return { url: null, error: (err as Error).message };

@@ -45,13 +45,13 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
     <div className="flex gap-2">
       <button
         onClick={handleCopyLink}
-        className="inline-flex items-center gap-2 rounded-xl border border-secondary-300 bg-white px-4 py-3 text-sm font-medium text-secondary-700 hover:bg-secondary-50 hover:shadow-sm transition-all"
+        className="inline-flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-3 text-sm font-semibold text-white hover:bg-white/25 hover:-translate-y-0.5 transition-all"
         title="Copiar link do perfil"
       >
         {copied ? (
           <>
-            <Check className="h-4 w-4 text-success" />
-            <span className="text-success">Copiado!</span>
+            <Check className="h-4 w-4 text-accent-300" />
+            <span className="text-accent-300 hidden sm:inline">Copiado!</span>
           </>
         ) : (
           <>
@@ -62,7 +62,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
       </button>
       <button
         onClick={handleShare}
-        className="inline-flex items-center gap-2 rounded-xl border border-secondary-300 bg-white px-4 py-3 text-sm font-medium text-secondary-700 hover:bg-secondary-50 hover:shadow-sm transition-all"
+        className="inline-flex items-center gap-2 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-3 text-sm font-semibold text-white hover:bg-white/25 hover:-translate-y-0.5 transition-all"
         title="Compartilhar perfil"
       >
         <Share2 className="h-4 w-4" />

@@ -4,7 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Loader2, Mail, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  ArrowLeft,
+  UserPlus,
+  Sparkles,
+  CheckCircle,
+  KeyRound,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { ensurePerfurador } from "@/app/(auth)/actions";
 import { Input } from "@/components/ui/input";
@@ -99,132 +107,207 @@ export default function CadastroPage() {
   }
 
   return (
-    <Card className="border-0 shadow-xl shadow-secondary-200/50">
-      <CardContent className="p-6 sm:p-8">
-        <div className="mb-6 text-center">
-          <h2 className="text-xl font-bold text-secondary-900">
-            Crie sua conta
-          </h2>
-          <p className="mt-1 text-sm text-secondary-500">
-            {step === "form"
-              ? "Comece a gerenciar seus serviços de perfuração"
-              : "Digite o código enviado para seu e-mail"}
-          </p>
+    <div className="space-y-6">
+      {/* Header icon */}
+      <div className="flex justify-center">
+        <div className="relative">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-success to-success-700 shadow-xl shadow-success/20 animate-pulse-glow">
+            {step === "form" ? (
+              <UserPlus className="h-8 w-8 text-white" />
+            ) : (
+              <KeyRound className="h-8 w-8 text-white" />
+            )}
+          </div>
+          <div className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-accent shadow-md">
+            <Sparkles className="h-3.5 w-3.5 text-white" />
+          </div>
         </div>
+      </div>
 
-        {step === "form" ? (
-          <form onSubmit={handleSendCode} className="space-y-4">
-            <Input
-              id="nome"
-              label="Nome completo"
-              placeholder="Seu nome completo"
-              autoComplete="name"
-              value={formData.nome}
-              onChange={handleChange("nome")}
-              required
-            />
-            <Input
-              id="email"
-              label="E-mail"
-              type="email"
-              placeholder="seu@email.com"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange("email")}
-              required
-            />
-            <Input
-              id="telefone"
-              label="Telefone"
-              placeholder="(00) 00000-0000"
-              autoComplete="tel"
-              value={formData.telefone}
-              onChange={handleChange("telefone")}
-              required
-            />
-            <Input
-              id="empresa"
-              label="Nome da Empresa"
-              placeholder="Nome da sua empresa"
-              autoComplete="organization"
-              value={formData.empresa}
-              onChange={handleChange("empresa")}
-              required
-            />
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={loading}
+      {/* Progress steps */}
+      <div className="flex items-center justify-center gap-2">
+        <div
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${step === "form" ? "bg-primary text-white shadow-md" : "bg-success-100 text-success-700"}`}
+        >
+          {step === "otp" ? (
+            <CheckCircle className="h-3.5 w-3.5" />
+          ) : (
+            <span className="h-4 w-4 flex items-center justify-center rounded-full bg-white/30 text-[10px]">
+              1
+            </span>
+          )}
+          Dados
+        </div>
+        <div className="w-8 h-0.5 bg-secondary-200 rounded-full" />
+        <div
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${step === "otp" ? "bg-primary text-white shadow-md" : "bg-secondary-100 text-secondary-400"}`}
+        >
+          <span className="h-4 w-4 flex items-center justify-center rounded-full bg-white/30 text-[10px]">
+            2
+          </span>
+          Verificação
+        </div>
+      </div>
+
+      <Card className="border-0 shadow-2xl shadow-secondary-200/60 overflow-hidden">
+        {/* Top gradient bar */}
+        <div className="h-1 bg-gradient-to-r from-success via-primary to-accent" />
+
+        <CardContent className="p-6 sm:p-8">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-secondary-900">
+              Crie sua conta
+            </h2>
+            <p className="mt-2 text-sm text-secondary-500 leading-relaxed">
+              {step === "form"
+                ? "Comece a gerenciar seus serviços de perfuração"
+                : "Digite o código de 6 dígitos enviado para seu e-mail"}
+            </p>
+          </div>
+
+          {step === "form" ? (
+            <form
+              onSubmit={handleSendCode}
+              className="space-y-4 animate-fade-in"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Mail className="mr-2 h-4 w-4" />
-                  Enviar código
-                </>
-              )}
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <div className="rounded-lg bg-secondary-50 px-4 py-3 text-sm text-secondary-600">
-              Código enviado para <strong>{formData.email}</strong>
-            </div>
-            <Input
-              id="otp"
-              label="Código de 6 dígitos"
-              type="text"
-              placeholder="000000"
-              autoComplete="one-time-code"
-              inputMode="numeric"
-              maxLength={6}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              required
-            />
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={loading}
+              <Input
+                id="nome"
+                label="Nome completo"
+                placeholder="Seu nome completo"
+                autoComplete="name"
+                value={formData.nome}
+                onChange={handleChange("nome")}
+                required
+              />
+              <Input
+                id="email"
+                label="E-mail"
+                type="email"
+                placeholder="seu@email.com"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleChange("email")}
+                required
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  id="telefone"
+                  label="Telefone"
+                  placeholder="(00) 00000-0000"
+                  autoComplete="tel"
+                  value={formData.telefone}
+                  onChange={handleChange("telefone")}
+                  required
+                />
+                <Input
+                  id="empresa"
+                  label="Empresa"
+                  placeholder="Nome da empresa"
+                  autoComplete="organization"
+                  value={formData.empresa}
+                  onChange={handleChange("empresa")}
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-primary to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all mt-2"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Continuar com e-mail
+                  </>
+                )}
+              </Button>
+            </form>
+          ) : (
+            <form
+              onSubmit={handleVerifyOtp}
+              className="space-y-5 animate-fade-in"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Criando conta...
-                </>
-              ) : (
-                "Criar conta"
-              )}
-            </Button>
-            <button
-              type="button"
-              onClick={() => {
-                setStep("form");
-                setOtp("");
-              }}
-              className="flex w-full items-center justify-center gap-1 text-sm text-secondary-500 hover:text-secondary-700"
-            >
-              <ArrowLeft className="h-3 w-3" /> Voltar
-            </button>
-          </form>
+              <div className="rounded-xl bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-100 px-4 py-3 text-sm text-secondary-600">
+                <span className="font-medium text-primary">
+                  📧 Código enviado para
+                </span>
+                <br />
+                <strong className="text-secondary-800">{formData.email}</strong>
+              </div>
+              <Input
+                id="otp"
+                label="Código de 6 dígitos"
+                type="text"
+                placeholder="000000"
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                required
+              />
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-success to-success-600 hover:from-success-600 hover:to-success-700 shadow-lg shadow-success/25 hover:shadow-xl hover:shadow-success/30 transition-all"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Criando conta...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Criar minha conta
+                  </>
+                )}
+              </Button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("form");
+                  setOtp("");
+                }}
+                className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-secondary-500 hover:text-primary transition-colors py-1"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Voltar
+              </button>
+            </form>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-secondary-100 text-center">
+            <p className="text-sm text-secondary-500">
+              Já tem conta?{" "}
+              <Link
+                href="/login"
+                className="font-bold text-primary hover:text-primary-700 transition-colors underline decoration-primary/30 underline-offset-2 hover:decoration-primary"
+              >
+                Faça login
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Trust signals */}
+      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-secondary-400 animate-fade-in delay-300">
+        {["Gratuito para sempre", "Sem cartão de crédito", "Dados seguros"].map(
+          (item) => (
+            <span key={item} className="flex items-center gap-1.5">
+              <CheckCircle className="h-3.5 w-3.5 text-success" />
+              {item}
+            </span>
+          ),
         )}
-
-        <p className="mt-6 text-center text-sm text-secondary-500">
-          Já tem conta?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-primary hover:text-primary-700 transition-colors"
-          >
-            Faça login
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

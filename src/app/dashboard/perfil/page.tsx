@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import Image from "next/image";
 import { Loader2, Camera, ExternalLink, Check } from "lucide-react";
 import { perfilSchema, PerfilFormData } from "@/lib/validations";
 import { updatePerfurador, getPerfuradorPerfil, uploadLogo } from "./actions";
@@ -184,10 +185,12 @@ export default function PerfilPage() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 {logoPreview ? (
-                  <img
+                  <Image
                     src={logoPreview}
                     alt="Logo"
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center gap-1">
