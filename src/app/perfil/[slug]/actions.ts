@@ -1,7 +1,19 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import type { Perfurador, Servico } from "@/types";
+
+// Rate limit do formulário público: máx 5 requisições por hora por IP
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+
+async function getClientIp(): Promise<string> {
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return h.get("x-real-ip")?.trim() || "unknown";
+}
 
 export type PublicPerfurador = Pick<
   Perfurador,
@@ -102,6 +114,41 @@ export async function enviarSolicitacaoOrcamento(
 ): Promise<{ success: boolean; error: string | null }> {
   try {
     const supabase = createClient();
+
+    // Rate limit: no máximo 5 solicitações por hora por IP
+    const ip = await getClientIp();
+    const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
+
+    const { count, error: rlError } = await supabase
+      .from("public_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("ip", ip)
+      .gte("created_at", since);
+
+    if (rlError) {
+      // Tabela ainda não migrada (migration 008) ou erro transitório:
+      // não bloqueia o formulário — enforcement passa a valer após a migration.
+      console.warn(
+        "[rate-limit] falha ao consultar public_requests:",
+        rlError.message,
+      );
+    } else if ((count ?? 0) >= RATE_LIMIT_MAX) {
+      return {
+        success: false,
+        error: "Muitas solicitações. Tente novamente em uma hora.",
+      };
+    }
+
+    // Registra a tentativa (não bloqueia o fluxo em caso de erro de escrita)
+    const { error: logError } = await supabase
+      .from("public_requests")
+      .insert({ ip, perfurador_id: perfuradorId });
+    if (logError) {
+      console.warn(
+        "[rate-limit] falha ao registrar public_requests:",
+        logError.message,
+      );
+    }
 
     // Create or find client
     const { data: cliente, error: clienteError } = await supabase

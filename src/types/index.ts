@@ -124,6 +124,8 @@ export type Servico = {
   orcamento_id: string | null;
   cliente_id: string | null;
   valor: number | null;
+  custo_previsto: number | null;
+  valor_recebido: number | null;
   status: StatusServico;
   profundidade_real_metros: number | null;
   diametro_polegadas: number | null;
@@ -157,6 +159,24 @@ export type Financeiro = {
   created_at: string;
   // Relações (joins)
   servico?: Servico;
+};
+
+// ============================================================
+// View: vw_margem_servico (margem por job — Fase 1)
+// ============================================================
+
+export type MargemServico = {
+  servico_id: string;
+  perfurador_id: string;
+  status: StatusServico;
+  tipo_solo: string | null;
+  profundidade: number | null;
+  receita: number;
+  custo: number;
+  margem: number;
+  margem_percentual: number | null;
+  custo_por_metro: number | null;
+  margem_por_metro: number | null;
 };
 
 // ============================================================

@@ -9,7 +9,8 @@
     "lint": "next lint",
     "migration": "bash scripts/migrate.sh apply",
     "migration:show": "bash scripts/migrate.sh show",
-    "migration:revert": "bash scripts/migrate.sh revert"
+    "migration:revert": "bash scripts/migrate.sh revert",
+    "test:isolation": "npx tsx scripts/test-isolation.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
