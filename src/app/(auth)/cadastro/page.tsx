@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ type FormData = {
 };
 
 export default function CadastroPage() {
+  const RESEND_COOLDOWN_SECONDS = 45;
   const router = useRouter();
   const [step, setStep] = useState<"form" | "otp">("form");
   const [formData, setFormData] = useState<FormData>({
@@ -37,6 +38,24 @@ export default function CadastroPage() {
   });
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (step !== "otp" || resendCooldown <= 0) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [resendCooldown, step]);
+
+  function generateTemporaryPassword() {
+    const random = Math.random().toString(36).slice(2);
+    return `NexaDrill@${Date.now()}${random}`;
+  }
 
   function handleChange(field: keyof FormData) {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,9 +74,28 @@ export default function CadastroPage() {
 
     setLoading(true);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      const { error: signUpError } = await authClient.signUp.email({
+        name: nome.trim(),
+        email: normalizedEmail,
+        password: generateTemporaryPassword(),
+      });
+
+      const signUpMessage = (signUpError?.message ?? "").toLowerCase();
+
+      if (
+        signUpError &&
+        !signUpMessage.includes("already") &&
+        !signUpMessage.includes("exist")
+      ) {
+        toast.error(signUpError.message || "Erro ao iniciar cadastro");
+        return;
+      }
+
       const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email: email.trim(),
-        type: "sign-in",
+        email: normalizedEmail,
+        type: "email-verification",
       });
 
       if (error) {
@@ -65,7 +103,9 @@ export default function CadastroPage() {
         return;
       }
 
-      toast.success("Código enviado! Verifique seu e-mail.");
+      setFormData((prev) => ({ ...prev, email: normalizedEmail }));
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      toast.success("Código de verificação enviado para seu e-mail.");
       setStep("otp");
     } catch {
       toast.error("Erro inesperado. Tente novamente.");
@@ -79,7 +119,7 @@ export default function CadastroPage() {
     if (!otp.trim()) return;
     setLoading(true);
     try {
-      const { error } = await authClient.signIn.emailOtp({
+      const { error } = await authClient.emailOtp.verifyEmail({
         email: formData.email.trim(),
         otp: otp.trim(),
       });
@@ -96,9 +136,35 @@ export default function CadastroPage() {
         formData.empresa.trim(),
       );
 
-      toast.success("Conta criada com sucesso!");
+      toast.success("Conta criada e verificada com sucesso!");
       router.push("/dashboard");
       router.refresh();
+    } catch {
+      toast.error("Erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResendCode() {
+    if (!formData.email.trim() || resendCooldown > 0 || loading) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: formData.email.trim().toLowerCase(),
+        type: "email-verification",
+      });
+
+      if (error) {
+        toast.error(error.message || "Erro ao reenviar código");
+        return;
+      }
+
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      toast.success("Novo código enviado para seu e-mail.");
     } catch {
       toast.error("Erro inesperado. Tente novamente.");
     } finally {
@@ -223,7 +289,7 @@ export default function CadastroPage() {
                 ) : (
                   <>
                     <Mail className="mr-2 h-4 w-4" />
-                    Continuar com e-mail
+                    Criar conta e enviar código
                   </>
                 )}
               </Button>
@@ -252,6 +318,16 @@ export default function CadastroPage() {
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                 required
               />
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={loading || resendCooldown > 0}
+                className="w-full text-sm font-medium text-primary hover:text-primary-700 disabled:text-secondary-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {resendCooldown > 0
+                  ? `Reenviar código em ${resendCooldown}s`
+                  : "Reenviar código"}
+              </button>
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-success to-success-600 hover:from-success-600 hover:to-success-700 shadow-lg shadow-success/25 hover:shadow-xl hover:shadow-success/30 transition-all"
@@ -275,6 +351,7 @@ export default function CadastroPage() {
                 onClick={() => {
                   setStep("form");
                   setOtp("");
+                  setResendCooldown(0);
                 }}
                 className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-secondary-500 hover:text-primary transition-colors py-1"
               >

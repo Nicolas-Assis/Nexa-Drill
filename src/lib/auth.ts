@@ -29,10 +29,18 @@ function generateSlug(base: string): string {
 
 export const auth = betterAuth({
   database: pool,
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    autoSignInAfterVerification: true,
+  },
   plugins: [
     emailOTP({
       otpLength: 6,
       expiresIn: 600,
+      disableSignUp: true,
       async sendVerificationOTP({ email, otp, type }) {
         const subject =
           type === "sign-in"
@@ -69,7 +77,7 @@ export const auth = betterAuth({
               `INSERT INTO public.perfuradores (auth_id, nome, email, slug, telefone, nome_empresa)
                VALUES ($1, $2, $3, $4, $5, $6)
                ON CONFLICT (auth_id) DO NOTHING`,
-              [user.id, user.name || "", user.email, slug, "", ""]
+              [user.id, user.name || "", user.email, slug, "", ""],
             );
           } catch (err) {
             console.error("[better-auth] Erro ao criar perfurador:", err);

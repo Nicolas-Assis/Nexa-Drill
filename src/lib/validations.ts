@@ -12,7 +12,9 @@ export const cadastroSchema = z
     nome: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
     email: z.string().email("E-mail inválido"),
     telefone: z.string().min(10, "Telefone inválido"),
-    empresa: z.string().min(2, "Nome da empresa deve ter no mínimo 2 caracteres"),
+    empresa: z
+      .string()
+      .min(2, "Nome da empresa deve ter no mínimo 2 caracteres"),
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
     confirmPassword: z.string(),
   })
@@ -24,13 +26,38 @@ export const cadastroSchema = z
 export type CadastroFormData = z.infer<typeof cadastroSchema>;
 
 export const clienteSchema = z.object({
-  nome: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
-  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-  telefone: z.string().min(10, "Telefone inválido"),
-  endereco: z.string().optional(),
-  cidade: z.string().optional(),
-  estado: z.string().optional(),
-  notas: z.string().optional(),
+  nome: z
+    .string()
+    .trim()
+    .min(2, "Nome deve ter no mínimo 2 caracteres")
+    .max(120, "Nome deve ter no máximo 120 caracteres"),
+  email: z
+    .string()
+    .trim()
+    .email("E-mail inválido")
+    .transform((value) => value.toLowerCase())
+    .optional()
+    .or(z.literal("")),
+  telefone: z
+    .string()
+    .trim()
+    .refine((value) => {
+      const onlyNumbers = value.replace(/\D/g, "");
+      return onlyNumbers.length >= 10 && onlyNumbers.length <= 11;
+    }, "Telefone inválido"),
+  endereco: z.string().trim().max(180, "Endereço muito longo").optional(),
+  cidade: z.string().trim().max(80, "Cidade muito longa").optional(),
+  estado: z
+    .string()
+    .trim()
+    .max(2, "UF inválida")
+    .transform((value) => value.toUpperCase())
+    .optional(),
+  notas: z
+    .string()
+    .trim()
+    .max(500, "Notas devem ter no máximo 500 caracteres")
+    .optional(),
 });
 
 export type ClienteFormData = z.infer<typeof clienteSchema>;
@@ -72,7 +99,9 @@ export type LancamentoFormData = z.infer<typeof lancamentoSchema>;
 export const perfilSchema = z.object({
   nome: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
   telefone: z.string().min(10, "Telefone inválido"),
-  nome_empresa: z.string().min(2, "Nome da empresa deve ter no mínimo 2 caracteres"),
+  nome_empresa: z
+    .string()
+    .min(2, "Nome da empresa deve ter no mínimo 2 caracteres"),
   bio: z
     .string()
     .max(500, "Bio deve ter no máximo 500 caracteres")

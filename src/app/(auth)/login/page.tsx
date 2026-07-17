@@ -32,7 +32,7 @@ export default function LoginPage() {
         return;
       }
 
-      toast.success("Código enviado! Verifique seu e-mail.");
+      toast.success("Se o e-mail estiver cadastrado, você receberá o código.");
       setStep("otp");
     } catch {
       toast.error("Erro inesperado. Tente novamente.");

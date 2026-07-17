@@ -123,6 +123,28 @@ const statusVariantMap: Record<string, BadgeVariant> = {
   rascunho: "default",
 };
 
+const FALLBACK_DASHBOARD_DATA: DashboardData = {
+  nomePerfurador: "",
+  totalClientes: 0,
+  totalClientesMesAnterior: 0,
+  orcamentosAtivos: 0,
+  orcamentosAtivosMesAnterior: 0,
+  servicosMes: 0,
+  servicosMesAnterior: 0,
+  faturamentoMes: 0,
+  faturamentoMesAnterior: 0,
+  orcamentosRecentes: [],
+  chartData: [],
+  orcamentosAguardandoAprovacao: 0,
+  servicosEmAndamento: 0,
+  margemMesValor: 0,
+  margemMesPercentual: null,
+  margemMesValorAnterior: 0,
+  margemMesPercentualAnterior: null,
+  pocosNoPrejuizo: [],
+  error: null,
+};
+
 // ─── Skeleton primitives ─────────────────────────────────────────────────────
 
 function SkeletonBlock({ className }: { className: string }) {
@@ -342,6 +364,7 @@ function ActionCard({
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const dashboardData = data ?? FALLBACK_DASHBOARD_DATA;
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -363,7 +386,7 @@ export default function DashboardPage() {
           {loading ? (
             <SkeletonBlock className="h-8 w-64 inline-block" />
           ) : (
-            getGreeting(data?.nomePerfurador)
+            getGreeting(dashboardData.nomePerfurador)
           )}
         </h1>
         <p className="text-secondary-500 mt-1">Visão geral do seu negócio</p>
@@ -373,7 +396,7 @@ export default function DashboardPage() {
       {loading ? (
         <StatsCardsSkeleton />
       ) : (
-        <StatsCards cards={buildStatCards(data!)} />
+        <StatsCards cards={buildStatCards(dashboardData)} />
       )}
 
       {/* Gráfico + Últimos Orçamentos */}
@@ -386,7 +409,7 @@ export default function DashboardPage() {
           {loading ? (
             <ChartSkeleton />
           ) : (
-            <ChartReceitaDespesa data={data!.chartData} />
+            <ChartReceitaDespesa data={dashboardData.chartData} />
           )}
         </div>
 
@@ -406,7 +429,7 @@ export default function DashboardPage() {
           {loading ? (
             <ListSkeleton rows={5} />
           ) : (
-            <OrcamentosRecentesList items={data!.orcamentosRecentes} />
+            <OrcamentosRecentesList items={dashboardData.orcamentosRecentes} />
           )}
         </div>
       </div>
@@ -426,13 +449,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ActionCard
               icon={Clock}
-              label={`${data!.orcamentosAguardandoAprovacao} orçamento${data!.orcamentosAguardandoAprovacao !== 1 ? "s" : ""} aguardando aprovação`}
+              label={`${dashboardData.orcamentosAguardandoAprovacao} orçamento${dashboardData.orcamentosAguardandoAprovacao !== 1 ? "s" : ""} aguardando aprovação`}
               href="/dashboard/orcamentos"
               iconColor="text-primary bg-primary-50"
             />
             <ActionCard
               icon={Wrench}
-              label={`${data!.servicosEmAndamento} serviço${data!.servicosEmAndamento !== 1 ? "s" : ""} em andamento`}
+              label={`${dashboardData.servicosEmAndamento} serviço${dashboardData.servicosEmAndamento !== 1 ? "s" : ""} em andamento`}
               href="/dashboard/servicos"
               iconColor="text-accent bg-accent-50"
             />
@@ -450,7 +473,7 @@ export default function DashboardPage() {
           {loading ? (
             <ListSkeleton rows={2} />
           ) : (
-            <PocosNoPrejuizo items={data!.pocosNoPrejuizo} />
+            <PocosNoPrejuizo items={dashboardData.pocosNoPrejuizo} />
           )}
         </div>
       </div>

@@ -27,10 +27,25 @@ ACTION="${1:-apply}"
 case "$ACTION" in
   apply)
     echo "🚀 Aplicando migrations..."
+    psql "$DB_URL" -v ON_ERROR_STOP=1 -c "
+      CREATE TABLE IF NOT EXISTS public.schema_migrations (
+        filename TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    " >/dev/null
+
     for file in $(ls "$MIGRATIONS_DIR"/*.sql 2>/dev/null | sort); do
       filename=$(basename "$file")
+      already_applied=$(psql "$DB_URL" -At -c "SELECT 1 FROM public.schema_migrations WHERE filename = '$filename' LIMIT 1;")
+
+      if [ "$already_applied" = "1" ]; then
+        echo "  ⏭️  Pulando já aplicada: $filename"
+        continue
+      fi
+
       echo "  → Executando: $filename"
-      psql "$DB_URL" -f "$file" 2>&1
+      psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$file"
+      psql "$DB_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO public.schema_migrations (filename) VALUES ('$filename');" >/dev/null
       echo "  ✅ $filename aplicada"
     done
     echo "🎉 Todas as migrations foram aplicadas!"
@@ -44,6 +59,9 @@ case "$ACTION" in
       lines=$(wc -l < "$file")
       echo "  📄 $filename ($lines linhas)"
     done
+    echo ""
+    echo "📌 Migrations registradas como aplicadas:"
+    psql "$DB_URL" -c "SELECT filename, applied_at FROM public.schema_migrations ORDER BY filename;" 2>&1 || true
     echo ""
     echo "📊 Tabelas no banco:"
     psql "$DB_URL" -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;" 2>&1
