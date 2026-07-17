@@ -1,5 +1,5 @@
 -- ╔════════════════════════════════════════════════════════════════════════════╗
--- ║  005 - Storage bucket para fotos de perfil                                ║
+-- ║  006 - Storage bucket para fotos de perfil                                ║
 -- ╚════════════════════════════════════════════════════════════════════════════╝
 
 -- Criar bucket para armazenar fotos de perfil
