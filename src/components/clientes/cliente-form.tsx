@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { clienteSchema, ClienteFormData } from "@/lib/validations";
 import { formatPhoneNumber } from "@/lib/format-phone";
+import { formatCpfCnpj } from "@/lib/format-doc";
 import { ESTADOS_BRASILEIROS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -40,6 +41,11 @@ export function ClienteForm({
   function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatPhoneNumber(e.target.value);
     setValue("telefone", formatted, { shouldValidate: true });
+  }
+
+  function handleDocChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatCpfCnpj(e.target.value);
+    setValue("cpf_cnpj", formatted, { shouldValidate: true });
   }
 
   return (
@@ -79,6 +85,15 @@ export function ClienteForm({
             error={errors.email?.message}
           />
         </div>
+
+        <Input
+          id="cpf_cnpj"
+          label="CPF / CNPJ"
+          placeholder="Necessário para gerar cobrança (Pix/boleto)"
+          inputMode="numeric"
+          {...register("cpf_cnpj", { onChange: handleDocChange })}
+          error={errors.cpf_cnpj?.message}
+        />
       </div>
 
       <div className="rounded-lg border border-secondary-200 p-4 space-y-4">

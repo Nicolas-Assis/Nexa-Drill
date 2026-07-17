@@ -3,6 +3,25 @@ import { emailOTP } from "better-auth/plugins";
 import nodemailer from "nodemailer";
 import { pool } from "./db";
 
+function normalizeOrigin(origin?: string | null): string | null {
+  if (!origin) return null;
+  const normalized = origin.trim().replace(/\/+$/, "");
+  return normalized || null;
+}
+
+const trustedOrigins = [
+  ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+  process.env.NEXT_PUBLIC_APP_URL,
+  "https://www.nexadrill.shop",
+  "https://nexadrill.shop",
+]
+  .map((origin) => normalizeOrigin(origin))
+  .filter((origin): origin is string => Boolean(origin))
+  .filter((origin, index, array) => array.indexOf(origin) === index);
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
@@ -29,6 +48,7 @@ function generateSlug(base: string): string {
 
 export const auth = betterAuth({
   database: pool,
+  trustedOrigins,
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,

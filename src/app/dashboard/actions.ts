@@ -41,6 +41,12 @@ export type DashboardData = {
     custo: number;
     receita: number;
   }[];
+  // Fase 8 — cobrança
+  aReceberTotal: number;
+  atrasadoValor: number;
+  atrasadoQtd: number;
+  dso: number | null;
+  recebimentos30: { label: string; valor: number }[];
   error: string | null;
 };
 
@@ -78,6 +84,11 @@ const empty: Omit<DashboardData, "error"> = {
   margemMesValorAnterior: 0,
   margemMesPercentualAnterior: null,
   pocosNoPrejuizo: [],
+  aReceberTotal: 0,
+  atrasadoValor: 0,
+  atrasadoQtd: 0,
+  dso: null,
+  recebimentos30: [],
 };
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -124,6 +135,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       orcamentosAguardandoRes,
       servicosEmAndamentoRes,
       margemRowsRes,
+      parcelasRes,
     ] = await Promise.all([
       // Q1 — total clientes
       supabase
@@ -217,12 +229,19 @@ export async function getDashboardData(): Promise<DashboardData> {
         .eq("perfurador_id", perfuradorId)
         .is("data_conclusao", null),
 
-      // Q13 — margem dos serviços concluídos no mês atual e anterior
+      // Q13 — margem PREVISTA dos serviços concluídos (visão da tese: lucro
+      // esperado por poço, independente de a parcela já ter sido paga)
       supabase
         .from("vw_margem_servico")
-        .select("servico_id, margem, margem_percentual, custo, receita")
+        .select("servico_id, margem_prevista, receita_prevista, custo")
         .eq("perfurador_id", perfuradorId)
         .in("status", ["concluido"]),
+
+      // Q14 — parcelas (contas a receber) para os KPIs de cobrança
+      supabase
+        .from("parcelas")
+        .select("valor, status, vencimento, data_pagamento, created_at")
+        .eq("perfurador_id", perfuradorId),
     ]);
 
     const { data: servicosConclusaoRows } = await supabase
@@ -263,14 +282,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       }),
     );
 
-    const margemMap = new Map<
-      string,
-      { margem: number; margem_percentual: number | null }
-    >();
+    const margemMap = new Map<string, { margem: number; receita: number }>();
     for (const row of margemRowsRes.data ?? []) {
       margemMap.set(row.servico_id as string, {
-        margem: (row.margem as number) ?? 0,
-        margem_percentual: (row.margem_percentual as number | null) ?? null,
+        margem: (row.margem_prevista as number) ?? 0,
+        receita: (row.receita_prevista as number) ?? 0,
       });
     }
 
@@ -303,8 +319,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         const row = margemMap.get(id);
         if (!row) continue;
         margemTotal += row.margem;
-        if (row.margem_percentual != null) {
-          percentualTotal += row.margem_percentual;
+        if (row.receita > 0) {
+          percentualTotal += (row.margem / row.receita) * 100;
           percentualCount += 1;
         }
       }
@@ -322,16 +338,82 @@ export async function getDashboardData(): Promise<DashboardData> {
     const lastMonthMargem = calcMargemBucket(lastMonthServicoIds);
 
     const pocosNoPrejuizo = (margemRowsRes.data ?? [])
-      .filter((row) => (row.margem as number) < 0)
-      .sort((a, b) => (a.margem as number) - (b.margem as number))
+      .filter((row) => (row.margem_prevista as number) < 0)
+      .sort(
+        (a, b) =>
+          (a.margem_prevista as number) - (b.margem_prevista as number),
+      )
       .slice(0, 5)
-      .map((row) => ({
-        servico_id: row.servico_id as string,
-        margem: row.margem as number,
-        margem_percentual: (row.margem_percentual as number | null) ?? null,
-        custo: (row.custo as number) ?? 0,
-        receita: (row.receita as number) ?? 0,
-      }));
+      .map((row) => {
+        const mp = (row.margem_prevista as number) ?? 0;
+        const rp = (row.receita_prevista as number) ?? 0;
+        return {
+          servico_id: row.servico_id as string,
+          margem: mp,
+          margem_percentual: rp > 0 ? Number(((mp / rp) * 100).toFixed(2)) : null,
+          custo: (row.custo as number) ?? 0,
+          receita: rp,
+        };
+      });
+
+    // ── Fase 8: KPIs de cobrança (parcelas) ─────────────────────────────────
+    const hojeStr = now.toISOString().slice(0, 10);
+    const em30 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30)
+      .toISOString()
+      .slice(0, 10);
+
+    let aReceberTotal = 0;
+    let atrasadoValor = 0;
+    let atrasadoQtd = 0;
+    const dsoDias: number[] = [];
+    const semanas = [0, 0, 0, 0]; // 4 janelas de ~7 dias nos próximos 30 dias
+
+    for (const p of parcelasRes.data ?? []) {
+      const status = p.status as string;
+      const valor = (p.valor as number) ?? 0;
+      const vencimento = p.vencimento as string;
+
+      if (status === "pendente" || status === "atrasado") {
+        aReceberTotal += valor;
+        if (vencimento < hojeStr) {
+          atrasadoValor += valor;
+          atrasadoQtd += 1;
+        } else if (vencimento <= em30) {
+          const diffDias = Math.floor(
+            (new Date(`${vencimento}T00:00:00`).getTime() -
+              new Date(`${hojeStr}T00:00:00`).getTime()) /
+              86_400_000,
+          );
+          const idx = Math.min(3, Math.floor(diffDias / 7));
+          semanas[idx] += valor;
+        }
+      }
+
+      if (status === "pago" && p.data_pagamento && p.created_at) {
+        const pago = new Date(p.data_pagamento as string);
+        const noventa = new Date(now.getTime() - 90 * 86_400_000);
+        if (pago >= noventa) {
+          const criado = new Date(p.created_at as string);
+          const dias = Math.round(
+            (pago.getTime() - criado.getTime()) / 86_400_000,
+          );
+          // ignora parcelas retro-migradas (created_at > data_pagamento)
+          if (dias >= 0) dsoDias.push(dias);
+        }
+      }
+    }
+
+    const dso =
+      dsoDias.length > 0
+        ? Number(
+            (dsoDias.reduce((s, d) => s + d, 0) / dsoDias.length).toFixed(1),
+          )
+        : null;
+
+    const recebimentos30 = semanas.map((valor, i) => ({
+      label: `Sem ${i + 1}`,
+      valor,
+    }));
 
     return {
       nomePerfurador,
@@ -361,6 +443,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       margemMesValorAnterior: lastMonthMargem.margemValor,
       margemMesPercentualAnterior: lastMonthMargem.margemPercentual,
       pocosNoPrejuizo,
+      aReceberTotal,
+      atrasadoValor,
+      atrasadoQtd,
+      dso,
+      recebimentos30,
       error: null,
     };
   } catch (err) {

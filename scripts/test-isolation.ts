@@ -144,6 +144,19 @@ async function main() {
       [A, servicoA],
     );
 
+    // uma parcela pertencente a A (Fase 2), se a tabela já existir
+    let parcelaA: string | null = null;
+    if (await tableExists(client, "public.parcelas")) {
+      const { rows: pRows } = await client.query(
+        `INSERT INTO public.parcelas
+           (perfurador_id, servico_id, descricao, valor, vencimento, status)
+         VALUES ($1, $2, 'Sinal', 30000, CURRENT_DATE + INTERVAL '30 days', 'pendente')
+         RETURNING id`,
+        [A, servicoA],
+      );
+      parcelaA = pRows[0].id as string;
+    }
+
     // ── Caso: servicos ──────────────────────────────────────────────────────
     const listaServicosB = await client.query(
       "SELECT id FROM public.servicos WHERE perfurador_id = $1",
@@ -205,6 +218,49 @@ async function main() {
       "financeiro: buscar lançamento de A com perfurador_id de B retorna vazio",
       ownFinB.rowCount === 0,
     );
+
+    // ── Caso: parcelas / contas a receber (Fase 2), se já existir ─────────────
+    if (parcelaA) {
+      const listaParcelasB = await client.query(
+        "SELECT id FROM public.parcelas WHERE perfurador_id = $1",
+        [B],
+      );
+      check(
+        "parcelas: listagem de B não contém parcela de A",
+        !listaParcelasB.rows.some((r) => r.id === parcelaA),
+      );
+      const ownParcelaB = await client.query(
+        "SELECT id FROM public.parcelas WHERE id = $1 AND perfurador_id = $2",
+        [parcelaA, B],
+      );
+      check(
+        "parcelas: buscar parcela de A com perfurador_id de B retorna vazio",
+        ownParcelaB.rowCount === 0,
+      );
+      const ownParcelaA = await client.query(
+        "SELECT id FROM public.parcelas WHERE id = $1 AND perfurador_id = $2",
+        [parcelaA, A],
+      );
+      check(
+        "parcelas: controle positivo — A acessa a própria parcela",
+        ownParcelaA.rowCount === 1,
+      );
+
+      if (await tableExists(client, "public.vw_parcelas_status")) {
+        const viewParcelaB = await client.query(
+          "SELECT id FROM public.vw_parcelas_status WHERE id = $1 AND perfurador_id = $2",
+          [parcelaA, B],
+        );
+        check(
+          "vw_parcelas_status: parcela de A não vaza para B",
+          viewParcelaB.rowCount === 0,
+        );
+      }
+    } else {
+      console.log(
+        "  ⏭️  public.parcelas ainda não existe (migration 010 não aplicada) — pulado",
+      );
+    }
 
     // ── Caso: view de margem (Fase 1), se já existir ─────────────────────────
     if (await tableExists(client, "public.vw_margem_servico")) {

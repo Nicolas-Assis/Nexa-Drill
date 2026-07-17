@@ -1,4 +1,11 @@
-import { StatusOrcamento, TipoLancamento, StatusServico } from "@/types";
+import {
+  StatusOrcamento,
+  TipoLancamento,
+  StatusServico,
+  StatusParcela,
+  MetodoPagamento,
+  SituacaoParcela,
+} from "@/types";
 
 export const STATUS_ORCAMENTO_OPTIONS: {
   value: StatusOrcamento;
@@ -148,6 +155,55 @@ export const MARGEM_BADGE_COLORS = {
   red: "bg-danger",
 } as const;
 
+// ─── Contas a receber / parcelas (Fase 2) ─────────────────────────────────────
+
+export const STATUS_PARCELA_OPTIONS: {
+  value: StatusParcela;
+  label: string;
+}[] = [
+  { value: "pendente", label: "Pendente" },
+  { value: "pago", label: "Pago" },
+  { value: "atrasado", label: "Atrasado" },
+  { value: "cancelado", label: "Cancelado" },
+];
+
+export const STATUS_PARCELA_COLORS: Record<StatusParcela, string> = {
+  pendente: "bg-secondary-100 text-secondary-700",
+  pago: "bg-success-100 text-success-700",
+  atrasado: "bg-danger-100 text-danger-700",
+  cancelado: "bg-secondary-200 text-secondary-500",
+};
+
+// Situação derivada em tempo real pela view vw_parcelas_status
+export const SITUACAO_PARCELA_LABELS: Record<SituacaoParcela, string> = {
+  a_vencer: "A vencer",
+  vence_hoje: "Vence hoje",
+  atrasada: "Atrasada",
+  pago: "Paga",
+  cancelado: "Cancelada",
+};
+
+export const METODO_PAGAMENTO_OPTIONS: {
+  value: MetodoPagamento;
+  label: string;
+}[] = [
+  { value: "pix", label: "Pix" },
+  { value: "boleto", label: "Boleto" },
+  { value: "cartao", label: "Cartão" },
+  { value: "dinheiro", label: "Dinheiro" },
+  { value: "transferencia", label: "Transferência" },
+  { value: "outro", label: "Outro" },
+];
+
+export const METODO_PAGAMENTO_LABELS: Record<MetodoPagamento, string> = {
+  pix: "Pix",
+  boleto: "Boleto",
+  cartao: "Cartão",
+  dinheiro: "Dinheiro",
+  transferencia: "Transferência",
+  outro: "Outro",
+};
+
 // ─── Nav items do dashboard ───────────────────────────────────────────────────
 
 export const DASHBOARD_NAV_ITEMS = [
@@ -155,6 +211,7 @@ export const DASHBOARD_NAV_ITEMS = [
   { href: "/dashboard/clientes", label: "Clientes" },
   { href: "/dashboard/orcamentos", label: "Orçamentos" },
   { href: "/dashboard/servicos", label: "Serviços" },
+  { href: "/dashboard/receber", label: "Contas a Receber" },
   { href: "/dashboard/financeiro", label: "Financeiro" },
   { href: "/dashboard/relatorios/margem", label: "Relatórios" },
   { href: "/dashboard/perfil", label: "Meu Perfil" },
@@ -168,6 +225,7 @@ export const PAGE_TITLES: Record<string, string> = {
   "/dashboard/orcamentos": "Orçamentos",
   "/dashboard/orcamentos/novo": "Novo Orçamento",
   "/dashboard/servicos": "Serviços",
+  "/dashboard/receber": "Contas a Receber",
   "/dashboard/financeiro": "Financeiro",
   "/dashboard/relatorios/margem": "Relatórios de Margem",
   "/dashboard/perfil": "Meu Perfil",

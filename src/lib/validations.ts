@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { validateCpfCnpj } from "@/lib/format-doc";
 
 export const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -45,6 +46,12 @@ export const clienteSchema = z.object({
       const onlyNumbers = value.replace(/\D/g, "");
       return onlyNumbers.length >= 10 && onlyNumbers.length <= 11;
     }, "Telefone inválido"),
+  cpf_cnpj: z
+    .string()
+    .trim()
+    .refine(validateCpfCnpj, "CPF ou CNPJ inválido")
+    .optional()
+    .or(z.literal("")),
   endereco: z.string().trim().max(180, "Endereço muito longo").optional(),
   cidade: z.string().trim().max(80, "Cidade muito longa").optional(),
   estado: z

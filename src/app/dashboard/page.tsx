@@ -11,6 +11,7 @@ import {
   Clock,
   Plus,
   ArrowRight,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -142,6 +143,11 @@ const FALLBACK_DASHBOARD_DATA: DashboardData = {
   margemMesValorAnterior: 0,
   margemMesPercentualAnterior: null,
   pocosNoPrejuizo: [],
+  aReceberTotal: 0,
+  atrasadoValor: 0,
+  atrasadoQtd: 0,
+  dso: null,
+  recebimentos30: [],
   error: null,
 };
 
@@ -359,6 +365,36 @@ function ActionCard({
   );
 }
 
+function RecebimentosBars({
+  data,
+}: {
+  data: { label: string; valor: number }[];
+}) {
+  const max = Math.max(...data.map((d) => d.valor), 1);
+  return (
+    <div className="h-[280px] flex items-end gap-4 px-2 pb-2">
+      {data.map((d, i) => (
+        <div
+          key={i}
+          className="flex-1 flex flex-col items-center justify-end gap-2"
+        >
+          <span className="text-xs font-medium text-secondary-700 h-4">
+            {d.valor > 0 ? formatCurrency(d.valor) : ""}
+          </span>
+          <div
+            className="w-full bg-primary/80 rounded-t transition-all"
+            style={{
+              height: `${(d.valor / max) * 100}%`,
+              minHeight: d.valor > 0 ? "4px" : "0px",
+            }}
+          />
+          <span className="text-xs text-secondary-500">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -391,6 +427,23 @@ export default function DashboardPage() {
         </h1>
         <p className="text-secondary-500 mt-1">Visão geral do seu negócio</p>
       </div>
+
+      {/* Alerta de parcelas atrasadas */}
+      {!loading && dashboardData.atrasadoQtd > 0 && (
+        <Link
+          href="/dashboard/receber"
+          className="flex items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 p-4 hover:bg-danger-100 transition-colors"
+        >
+          <AlertTriangle className="h-5 w-5 text-danger shrink-0" />
+          <span className="text-sm text-danger font-medium">
+            Você tem {dashboardData.atrasadoQtd} parcela
+            {dashboardData.atrasadoQtd !== 1 ? "s" : ""} atrasada
+            {dashboardData.atrasadoQtd !== 1 ? "s" : ""} somando{" "}
+            {formatCurrency(dashboardData.atrasadoValor)}
+          </span>
+          <ArrowRight className="h-4 w-4 text-danger ml-auto shrink-0" />
+        </Link>
+      )}
 
       {/* Cards de resumo */}
       {loading ? (
@@ -430,6 +483,62 @@ export default function DashboardPage() {
             <ListSkeleton rows={5} />
           ) : (
             <OrcamentosRecentesList items={dashboardData.orcamentosRecentes} />
+          )}
+        </div>
+      </div>
+
+      {/* Cobrança */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* A receber */}
+        <div className="rounded-xl border border-secondary-200 bg-white p-6 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg p-2 bg-primary-50 text-primary">
+                <Wallet className="h-5 w-5" />
+              </div>
+              <h2 className="text-lg font-semibold text-secondary-900">
+                💰 A receber
+              </h2>
+            </div>
+            <Link
+              href="/dashboard/receber"
+              className="text-sm text-primary hover:underline flex items-center gap-1"
+            >
+              Ver todas <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {loading ? (
+            <SkeletonBlock className="h-9 w-40 mt-4" />
+          ) : (
+            <>
+              <p className="text-3xl font-bold text-secondary-900 mt-4">
+                {formatCurrency(dashboardData.aReceberTotal)}
+              </p>
+              <p className="text-sm text-secondary-500 mt-2">
+                DSO:{" "}
+                <span className="font-medium text-secondary-700">
+                  {dashboardData.dso == null
+                    ? "—"
+                    : `${dashboardData.dso} dias p/ receber`}
+                </span>
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* Recebimentos previstos - próximos 30 dias */}
+        <div className="lg:col-span-2 rounded-xl border border-secondary-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-secondary-900 mb-4">
+            Recebimentos previstos — próximos 30 dias
+          </h2>
+          {loading ? (
+            <ChartSkeleton />
+          ) : dashboardData.recebimentos30.every((r) => r.valor === 0) ? (
+            <p className="text-sm text-secondary-400 text-center py-12">
+              Nenhum recebimento previsto para os próximos 30 dias.
+            </p>
+          ) : (
+            <RecebimentosBars data={dashboardData.recebimentos30} />
           )}
         </div>
       </div>

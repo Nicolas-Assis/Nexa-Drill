@@ -228,6 +228,7 @@ export default function ClientesPage() {
                   nome: editingCliente.nome,
                   telefone: editingCliente.telefone,
                   email: editingCliente.email ?? "",
+                  cpf_cnpj: editingCliente.cpf_cnpj ?? "",
                   endereco: editingCliente.endereco ?? "",
                   cidade: editingCliente.cidade ?? "",
                   estado: editingCliente.estado ?? "",

@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
 import type { Servico, Cliente, Orcamento } from "@/types";
 
@@ -120,51 +122,68 @@ export async function updateServico(
   }
 }
 
-// Concluir serviço e criar lançamento financeiro
-export async function concluirServicoComReceita(
+// ── Conclusão de serviço com parcelas (Fase 2) ───────────────────────────────
+// Ao concluir, o serviço vira uma ou mais parcelas. Parcela "paga" (à vista ou
+// sinal) gera receita no financeiro com servico_id + parcela_id. Parcela pendente
+// só entra em `parcelas` — a receita só nasce quando a baixa/webhook confirmar.
+const parcelaConclusaoSchema = z.object({
+  descricao: z.string().trim().min(1, "Descrição da parcela é obrigatória"),
+  valor: z.number().positive("Valor da parcela deve ser maior que zero"),
+  vencimento: z.string().min(1, "Vencimento é obrigatório"),
+  pago: z.boolean(),
+  metodo_pagamento: z
+    .enum(["pix", "boleto", "cartao", "dinheiro", "transferencia", "outro"])
+    .nullable()
+    .optional(),
+});
+
+const concluirServicoSchema = z.object({
+  dataConclusao: z.string().min(1, "Data de conclusão é obrigatória"),
+  parcelas: z
+    .array(parcelaConclusaoSchema)
+    .min(1, "Informe ao menos uma parcela"),
+});
+
+export type ParcelaConclusaoInput = z.infer<typeof parcelaConclusaoSchema>;
+
+export async function concluirServico(
   servicoId: string,
-  dados: {
-    valor: number;
-    desconto: number;
-    data: string;
-    descricao: string;
-  },
+  input: { dataConclusao: string; parcelas: ParcelaConclusaoInput[] },
 ): Promise<{ success: boolean; error: string | null }> {
   try {
+    const parsed = concluirServicoSchema.safeParse(input);
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0].message };
+    }
+
     const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
 
-    const valorFinal = dados.valor - dados.desconto;
-    const today = new Date().toISOString().slice(0, 10);
+    // Tudo numa transação (fn_concluir_servico): valida posse, aborta se já
+    // concluído (anti-retry), cria parcelas + receitas e conclui o serviço.
+    const { error } = await supabase.rpc("fn_concluir_servico", {
+      p_servico_id: servicoId,
+      p_perfurador_id: perfuradorId,
+      p_data: parsed.data.dataConclusao,
+      p_parcelas: parsed.data.parcelas.map((p) => ({
+        descricao: p.descricao.trim(),
+        valor: p.valor,
+        vencimento: p.vencimento,
+        pago: p.pago,
+        metodo_pagamento: p.pago ? (p.metodo_pagamento ?? "outro") : null,
+      })),
+    });
 
-    // Atualizar serviço para concluído
-    const { error: updateError } = await supabase
-      .from("servicos")
-      .update({
-        status: "concluido",
-        data_conclusao: today,
-        valor: dados.valor,
-      })
-      .eq("id", servicoId)
-      .eq("perfurador_id", perfuradorId);
+    if (error) {
+      const msg = error.message.includes("SERVICO_JA_TEM_PARCELAS")
+        ? "Este serviço já foi concluído (já possui parcelas). Confira em Contas a Receber."
+        : error.message.includes("SERVICO_NAO_ENCONTRADO")
+          ? "Serviço não encontrado"
+          : error.message;
+      return { success: false, error: msg };
+    }
 
-    if (updateError) return { success: false, error: updateError.message };
-
-    // Criar lançamento financeiro
-    const { error: financeiroError } = await supabase
-      .from("financeiro")
-      .insert({
-        perfurador_id: perfuradorId,
-        servico_id: servicoId,
-        tipo: "receita",
-        categoria: "servico",
-        descricao: dados.descricao,
-        valor: valorFinal,
-        data: dados.data,
-      });
-
-    if (financeiroError)
-      return { success: false, error: financeiroError.message };
-
+    revalidatePath(`/dashboard/servicos/${servicoId}`);
+    revalidatePath("/dashboard/receber");
     return { success: true, error: null };
   } catch (err) {
     return { success: false, error: (err as Error).message };

@@ -80,6 +80,8 @@ export type Cliente = {
   nome: string;
   telefone: string;
   email: string | null;
+  cpf_cnpj: string | null;
+  asaas_customer_id: string | null;
   endereco: string | null;
   cidade: string | null;
   estado: string | null;
@@ -151,6 +153,7 @@ export type Financeiro = {
   id: string;
   perfurador_id: string;
   servico_id: string | null;
+  parcela_id: string | null;
   tipo: TipoLancamento;
   categoria: string | null;
   descricao: string | null;
@@ -159,6 +162,73 @@ export type Financeiro = {
   created_at: string;
   // Relações (joins)
   servico?: Servico;
+  parcela?: Parcela;
+};
+
+// ============================================================
+// Contas a receber / parcelas (Fase 2)
+// ============================================================
+
+export type StatusParcela = "pendente" | "pago" | "atrasado" | "cancelado";
+
+export type MetodoPagamento =
+  | "pix"
+  | "boleto"
+  | "cartao"
+  | "dinheiro"
+  | "transferencia"
+  | "outro";
+
+export type Parcela = {
+  id: string;
+  perfurador_id: string;
+  servico_id: string | null;
+  cliente_id: string | null;
+  descricao: string | null;
+  valor: number;
+  vencimento: string;
+  status: StatusParcela;
+  metodo_pagamento: MetodoPagamento | null;
+  data_pagamento: string | null;
+  valor_pago: number | null;
+  asaas_cobranca_id: string | null;
+  pix_copia_cola: string | null;
+  boleto_url: string | null;
+  link_pagamento: string | null;
+  numero_parcela: number | null;
+  total_parcelas: number | null;
+  created_at: string;
+  updated_at: string;
+  // Relações (joins)
+  servico?: Servico;
+  cliente?: Cliente;
+};
+
+// Situação derivada em tempo real pela view (independe do status gravado)
+export type SituacaoParcela =
+  | "a_vencer"
+  | "vence_hoje"
+  | "atrasada"
+  | "pago"
+  | "cancelado";
+
+// View: vw_parcelas_status (parcela + campos calculados)
+export type ParcelaStatus = Parcela & {
+  dias_ate_vencimento: number | null;
+  situacao: SituacaoParcela;
+};
+
+// Log cru de webhooks (Asaas, etc.) — infra-level, sem perfurador_id
+export type WebhookLog = {
+  id: string;
+  origem: string;
+  event_id: string | null;
+  evento: string | null;
+  payload: unknown;
+  processado: boolean;
+  resultado: string | null;
+  erro: string | null;
+  created_at: string;
 };
 
 // ============================================================
@@ -177,6 +247,11 @@ export type MargemServico = {
   margem_percentual: number | null;
   custo_por_metro: number | null;
   margem_por_metro: number | null;
+  // Fase 9 — recebido x previsto
+  receita_recebida: number;
+  receita_prevista: number;
+  margem_recebida: number;
+  margem_prevista: number;
 };
 
 // ============================================================
@@ -223,8 +298,19 @@ export type ServicoUpdate = Partial<
 
 export type FinanceiroInsert = Omit<
   Financeiro,
-  "id" | "created_at" | "servico"
+  "id" | "created_at" | "servico" | "parcela"
 >;
 export type FinanceiroUpdate = Partial<
-  Omit<Financeiro, "id" | "perfurador_id" | "created_at" | "servico">
+  Omit<Financeiro, "id" | "perfurador_id" | "created_at" | "servico" | "parcela">
+>;
+
+export type ParcelaInsert = Omit<
+  Parcela,
+  "id" | "created_at" | "updated_at" | "servico" | "cliente"
+>;
+export type ParcelaUpdate = Partial<
+  Omit<
+    Parcela,
+    "id" | "perfurador_id" | "created_at" | "updated_at" | "servico" | "cliente"
+  >
 >;

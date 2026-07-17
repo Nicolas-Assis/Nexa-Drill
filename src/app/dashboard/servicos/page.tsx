@@ -10,7 +10,6 @@ import {
   Search,
   CheckCircle,
   XCircle,
-  DollarSign,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,8 +25,8 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { ServicoForm } from "@/components/servicos/servico-form";
+import { ConcluirServicoModal } from "@/components/servicos/concluir-servico-modal";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { STATUS_SERVICO_OPTIONS, SERVICO_LABELS } from "@/lib/constants";
 import {
@@ -36,7 +35,6 @@ import {
   deleteServico,
   getClientesForSelect,
   getOrcamentosForSelect,
-  concluirServicoComReceita,
   cancelarServico,
   type ServicoCreateData,
 } from "./actions";
@@ -66,12 +64,6 @@ export default function ServicosPage() {
   const [showConcluirModal, setShowConcluirModal] = useState(false);
   const [servicoParaConcluir, setServicoParaConcluir] =
     useState<ServicoWithRelations | null>(null);
-  const [concluirForm, setConcluirForm] = useState({
-    valor: 0,
-    desconto: 0,
-    data: new Date().toISOString().split("T")[0],
-    descricao: "",
-  });
 
   // Confirmação de exclusão/cancelamento
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -130,33 +122,8 @@ export default function ServicosPage() {
   }
 
   function abrirModalConcluir(servico: ServicoWithRelations) {
-    const valorBase = servico.valor ?? servico.orcamento?.valor_final ?? 0;
-    setConcluirForm({
-      valor: valorBase,
-      desconto: 0,
-      data: new Date().toISOString().split("T")[0],
-      descricao: `Serviço concluído${servico.cliente ? ` - ${servico.cliente.nome}` : ""}`,
-    });
     setServicoParaConcluir(servico);
     setShowConcluirModal(true);
-  }
-
-  async function handleConfirmarConclusao() {
-    if (!servicoParaConcluir) return;
-    setSubmitting(true);
-    const result = await concluirServicoComReceita(
-      servicoParaConcluir.id,
-      concluirForm,
-    );
-    setSubmitting(false);
-    if (result.error) {
-      toast.error(result.error);
-      return;
-    }
-    toast.success("Serviço concluído e receita registrada!");
-    setShowConcluirModal(false);
-    setServicoParaConcluir(null);
-    fetchData();
   }
 
   async function handleCancelar(id: string) {
@@ -514,93 +481,16 @@ export default function ServicosPage() {
         />
       </Dialog>
 
-      {/* Modal de Conclusão */}
-      <Dialog
+      {/* Modal de Conclusão (à vista / parcelado / com sinal) */}
+      <ConcluirServicoModal
         open={showConcluirModal}
-        onClose={() => setShowConcluirModal(false)}
-        className="max-w-md"
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-success" />
-            Confirmar Conclusão do Serviço
-          </DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-secondary-600 mt-2 mb-4">
-          Confirme os dados de recebimento. Um lançamento de receita será criado
-          automaticamente no financeiro.
-        </p>
-        <div className="space-y-4">
-          <Input
-            label="Valor recebido (R$)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={concluirForm.valor}
-            onChange={(e) =>
-              setConcluirForm((f) => ({
-                ...f,
-                valor: parseFloat(e.target.value) || 0,
-              }))
-            }
-          />
-          <Input
-            label="Desconto (R$)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={concluirForm.desconto}
-            onChange={(e) =>
-              setConcluirForm((f) => ({
-                ...f,
-                desconto: parseFloat(e.target.value) || 0,
-              }))
-            }
-          />
-          <Input
-            label="Data de recebimento"
-            type="date"
-            value={concluirForm.data}
-            onChange={(e) =>
-              setConcluirForm((f) => ({ ...f, data: e.target.value }))
-            }
-          />
-          <Input
-            label="Descrição"
-            value={concluirForm.descricao}
-            onChange={(e) =>
-              setConcluirForm((f) => ({ ...f, descricao: e.target.value }))
-            }
-          />
-          <div className="border-t border-secondary-100 pt-3">
-            <p className="text-sm text-secondary-500">
-              Valor líquido:{" "}
-              <span className="font-semibold text-success">
-                {formatCurrency(
-                  Math.max(0, concluirForm.valor - concluirForm.desconto),
-                )}
-              </span>
-            </p>
-          </div>
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setShowConcluirModal(false)}
-            disabled={submitting}
-          >
-            Cancelar
-          </Button>
-          <Button onClick={handleConfirmarConclusao} disabled={submitting}>
-            {submitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <CheckCircle className="mr-2 h-4 w-4" />
-            )}
-            Confirmar
-          </Button>
-        </div>
-      </Dialog>
+        onClose={() => {
+          setShowConcluirModal(false);
+          setServicoParaConcluir(null);
+        }}
+        servico={servicoParaConcluir}
+        onConcluded={fetchData}
+      />
 
       {/* Confirmação de Exclusão */}
       <Dialog
