@@ -249,27 +249,62 @@ export async function getServicosForSelect(): Promise<{
 
     const { data, error } = await supabase
       .from("servicos")
-      .select("id, endereco, cliente:clientes(nome)")
+      .select(
+        "id, status, data_conclusao, endereco, tipo_solo_encontrado, cliente:clientes(nome)",
+      )
       .eq("perfurador_id", perfuradorId)
       .order("created_at", { ascending: false })
       .limit(50);
 
     if (error) return { servicos: [], error: error.message };
 
+    const statusLabelMap: Record<string, string> = {
+      andamento: "Em andamento",
+      concluido: "Concluído",
+      cancelado: "Cancelado",
+    };
+
     const servicos = (data ?? []).map((s) => {
       const clienteArray = s.cliente as { nome: string }[] | null;
       const clienteNome =
         clienteArray && clienteArray.length > 0 ? clienteArray[0].nome : null;
+      const status = (s.status as string | null) ?? "andamento";
+      const statusLabel = statusLabelMap[status] ?? status;
+      const endereco = (s.endereco as string | null) ?? null;
+      const tipoSolo = (s.tipo_solo_encontrado as string | null) ?? null;
+
+      const descricao =
+        endereco ?? tipoSolo ?? `Serviço ${(s.id as string).slice(0, 8)}`;
+
       return {
         id: s.id as string,
-        label:
-          clienteNome ??
-          (s.endereco as string | null) ??
-          `Serviço ${(s.id as string).slice(0, 8)}`,
+        label: `[${clienteNome ?? "Cliente"}] - [${descricao}] - [${statusLabel}]`,
+        status,
+        dataConclusao: (s.data_conclusao as string | null) ?? null,
       };
     });
 
-    return { servicos, error: null };
+    servicos.sort((a, b) => {
+      if (a.status === "andamento" && b.status !== "andamento") return -1;
+      if (a.status !== "andamento" && b.status === "andamento") return 1;
+
+      if (a.status === "concluido" && b.status === "concluido") {
+        const aTime = a.dataConclusao
+          ? new Date(a.dataConclusao).getTime()
+          : Number.NEGATIVE_INFINITY;
+        const bTime = b.dataConclusao
+          ? new Date(b.dataConclusao).getTime()
+          : Number.NEGATIVE_INFINITY;
+        return bTime - aTime;
+      }
+
+      return 0;
+    });
+
+    return {
+      servicos: servicos.map(({ id, label }) => ({ id, label })),
+      error: null,
+    };
   } catch (err) {
     return { servicos: [], error: (err as Error).message };
   }

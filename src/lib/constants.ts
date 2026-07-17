@@ -137,6 +137,17 @@ export const SOLO_LABELS: Record<string, string> = {
   nao_identificado: "Não identificado",
 };
 
+export const MARGEM_THRESHOLD = {
+  green: 25,
+  yellow: 10,
+} as const;
+
+export const MARGEM_BADGE_COLORS = {
+  green: "bg-success",
+  yellow: "bg-accent",
+  red: "bg-danger",
+} as const;
+
 // ─── Nav items do dashboard ───────────────────────────────────────────────────
 
 export const DASHBOARD_NAV_ITEMS = [
@@ -145,6 +156,7 @@ export const DASHBOARD_NAV_ITEMS = [
   { href: "/dashboard/orcamentos", label: "Orçamentos" },
   { href: "/dashboard/servicos", label: "Serviços" },
   { href: "/dashboard/financeiro", label: "Financeiro" },
+  { href: "/dashboard/relatorios/margem", label: "Relatórios" },
   { href: "/dashboard/perfil", label: "Meu Perfil" },
 ] as const;
 
@@ -157,5 +169,6 @@ export const PAGE_TITLES: Record<string, string> = {
   "/dashboard/orcamentos/novo": "Novo Orçamento",
   "/dashboard/servicos": "Serviços",
   "/dashboard/financeiro": "Financeiro",
+  "/dashboard/relatorios/margem": "Relatórios de Margem",
   "/dashboard/perfil": "Meu Perfil",
 };

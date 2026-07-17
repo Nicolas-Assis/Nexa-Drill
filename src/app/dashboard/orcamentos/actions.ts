@@ -3,6 +3,15 @@
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
 import { orcamentoSchema, type OrcamentoFormData } from "@/lib/validations";
 import type { Orcamento, Cliente, StatusOrcamento } from "@/types";
+import { z } from "zod";
+
+const createLancamentoConclusaoSchema = z.object({
+  servicoId: z.string().min(1, "Serviço é obrigatório para conclusão"),
+  valor: z.number().positive("Valor deve ser maior que zero"),
+  desconto: z.number().min(0, "Desconto não pode ser negativo"),
+  data: z.string().min(1, "Data é obrigatória"),
+  descricao: z.string().min(1, "Descrição é obrigatória"),
+});
 
 export async function getClientesForSelect(): Promise<{
   clientes: Pick<Cliente, "id" | "nome" | "telefone" | "cidade" | "estado">[];
@@ -310,16 +319,39 @@ export async function createLancamentoConclusao(data: {
   try {
     const { supabase, perfurador } = await getAuthenticatedPerfurador();
 
-    const valorFinal = data.valor - data.desconto;
+    const parsed = createLancamentoConclusaoSchema.safeParse({
+      ...data,
+      servicoId: data.servicoId ?? "",
+    });
+
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0].message };
+    }
+
+    const { data: servico, error: servicoError } = await supabase
+      .from("servicos")
+      .select("id")
+      .eq("id", parsed.data.servicoId)
+      .eq("perfurador_id", perfurador.id)
+      .single();
+
+    if (servicoError || !servico) {
+      return {
+        success: false,
+        error: servicoError?.message ?? "Serviço não encontrado",
+      };
+    }
+
+    const valorFinal = parsed.data.valor - parsed.data.desconto;
 
     const { error } = await supabase.from("financeiro").insert({
       perfurador_id: perfurador.id,
-      servico_id: data.servicoId ?? null,
+      servico_id: parsed.data.servicoId,
       tipo: "receita",
       categoria: "servico",
-      descricao: data.descricao,
+      descricao: parsed.data.descricao,
       valor: valorFinal,
-      data: data.data,
+      data: parsed.data.data,
     });
 
     if (error) return { success: false, error: error.message };

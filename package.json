@@ -10,7 +10,8 @@
     "migration": "bash scripts/migrate.sh apply",
     "migration:show": "bash scripts/migrate.sh show",
     "migration:revert": "bash scripts/migrate.sh revert",
-    "test:isolation": "npx tsx scripts/test-isolation.ts"
+    "test:isolation": "npx tsx scripts/test-isolation.ts",
+    "seed:demo": "npx tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { lancamentoSchema, LancamentoFormData } from "@/lib/validations";
@@ -35,6 +36,8 @@ export function LancamentoForm({
     register,
     handleSubmit,
     watch,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm<LancamentoFormData>({
     resolver: zodResolver(lancamentoSchema),
@@ -46,9 +49,22 @@ export function LancamentoForm({
   });
 
   const tipo = tipoLocked ?? watch("tipo");
-  const categorias = tipo === "receita" ? CATEGORIAS_RECEITA : CATEGORIAS_DESPESA;
+  const categorias =
+    tipo === "receita" ? CATEGORIAS_RECEITA : CATEGORIAS_DESPESA;
   const labels =
     tipo === "receita" ? CATEGORIAS_RECEITA_LABELS : CATEGORIAS_DESPESA_LABELS;
+
+  useEffect(() => {
+    if (!servicos || servicos.length === 0) return;
+
+    const inProgress = servicos.filter((s) =>
+      s.label.toLowerCase().includes("[em andamento]"),
+    );
+
+    if (inProgress.length === 1 && !getValues("servico_id")) {
+      setValue("servico_id", inProgress[0].id, { shouldDirty: false });
+    }
+  }, [servicos, getValues, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -96,8 +112,10 @@ export function LancamentoForm({
       {servicos && servicos.length > 0 && (
         <Select
           label="Serviço vinculado (opcional)"
-          options={servicos.map((s) => ({ value: s.id, label: s.label }))}
-          placeholder="Nenhum serviço"
+          options={[
+            { value: "", label: "Nenhum" },
+            ...servicos.map((s) => ({ value: s.id, label: s.label })),
+          ]}
           {...register("servico_id")}
           error={errors.servico_id?.message}
         />

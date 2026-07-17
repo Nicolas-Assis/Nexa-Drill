@@ -65,19 +65,52 @@ async function main() {
     await client.query("BEGIN");
 
     // 1) Precisa de 2 perfuradores para simular tenants distintos
-    const { rows: perfs } = await client.query(
+    const { rows: existingPerfs } = await client.query(
       "SELECT id FROM public.perfuradores ORDER BY created_at ASC LIMIT 2",
     );
+
+    const perfs = [...existingPerfs] as { id: string }[];
+
     if (perfs.length < 2) {
+      const missing = 2 - perfs.length;
+
+      for (let i = 0; i < missing; i++) {
+        const suffix = `${Date.now()}_${i}`;
+        const userId = `isolation_user_${suffix}`;
+        const email = `isolation_${suffix}@example.com`;
+        const slug = `isolation-${suffix}`;
+
+        await client.query(
+          `INSERT INTO "user" (id, name, email, "emailVerified")
+           VALUES ($1, $2, $3, true)
+           ON CONFLICT (id) DO NOTHING`,
+          [userId, `Isolation ${i + 1}`, email],
+        );
+
+        const { rows: insertedPerfs } = await client.query(
+          `INSERT INTO public.perfuradores
+            (auth_id, nome, telefone, email, slug, nome_empresa)
+           VALUES
+            ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (auth_id)
+           DO UPDATE SET nome = EXCLUDED.nome
+           RETURNING id`,
+          [
+            userId,
+            `Isolation ${i + 1}`,
+            `(00) 00000-000${i}`,
+            email,
+            slug,
+            `Isolation ${i + 1}`,
+          ],
+        );
+
+        perfs.push({ id: insertedPerfs[0].id as string });
+      }
+
       console.log(
-        "\n⚠️  Menos de 2 perfuradores no banco — não é possível testar isolamento.",
+        "ℹ️  Menos de 2 perfuradores no banco: criados tenants temporários para o teste.",
       );
-      console.log(
-        "   Rode o seed de demo (Fase 8) ou cadastre outro perfurador e tente de novo.\n",
-      );
-      await client.query("ROLLBACK");
-      await client.end();
-      process.exit(0);
     }
 
     const A = perfs[0].id as string;

@@ -34,3 +34,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Scripts úteis
+
+- `npm run migration` — aplica migrations SQL
+- `npm run migration:show` — lista migrations e tabelas
+- `npm run test:isolation` — smoke test de isolamento multi-tenant
+- `npm run seed:demo` — popula dados de demonstração
+
+## Seed de demo (Fase 8)
+
+Ao rodar `npm run seed:demo`, o script cria/atualiza o usuário demo e dados completos:
+
+- E-mail demo: `demo@aguaboa.com`
+- Nome: `Perfurações Água Boa`
+- Slug público: `perfuracoes-agua-boa-demo`
+
+Observação: o login segue fluxo OTP por e-mail (better-auth). Garanta SMTP configurado para autenticar com o e-mail demo.

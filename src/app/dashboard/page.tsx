@@ -6,16 +6,24 @@ import {
   Users,
   FileText,
   Wrench,
-  DollarSign,
+  AlertTriangle,
+  TrendingUp,
   Clock,
   Plus,
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { StatsCards, type StatCardItem } from "@/components/dashboard/stats-cards";
+import {
+  StatsCards,
+  type StatCardItem,
+} from "@/components/dashboard/stats-cards";
 import { Badge } from "@/components/ui/badge";
 import { ChartReceitaDespesa } from "@/components/financeiro/chart-receita-despesa";
-import { getDashboardData, type DashboardData, type OrcamentoRecente } from "./actions";
+import {
+  getDashboardData,
+  type DashboardData,
+  type OrcamentoRecente,
+} from "./actions";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { STATUS_ORCAMENTO_OPTIONS } from "@/lib/constants";
 
@@ -45,7 +53,7 @@ function buildStatCards(data: DashboardData): StatCardItem[] {
       comparison: {
         percentage: calcPercentChange(
           data.totalClientes,
-          data.totalClientesMesAnterior
+          data.totalClientesMesAnterior,
         ),
         label: "vs mês passado",
       },
@@ -59,7 +67,7 @@ function buildStatCards(data: DashboardData): StatCardItem[] {
       comparison: {
         percentage: calcPercentChange(
           data.orcamentosAtivos,
-          data.orcamentosAtivosMesAnterior
+          data.orcamentosAtivosMesAnterior,
         ),
         label: "vs mês passado",
       },
@@ -71,20 +79,30 @@ function buildStatCards(data: DashboardData): StatCardItem[] {
       iconColor: "text-secondary-600 bg-secondary-100",
       href: "/dashboard/servicos",
       comparison: {
-        percentage: calcPercentChange(data.servicosMes, data.servicosMesAnterior),
+        percentage: calcPercentChange(
+          data.servicosMes,
+          data.servicosMesAnterior,
+        ),
         label: "vs mês passado",
       },
     },
     {
-      title: "Faturamento do Mês",
-      value: formatCurrency(data.faturamentoMes),
-      icon: DollarSign,
-      iconColor: "text-success bg-success-50",
-      href: "/dashboard/financeiro",
+      title: "Margem do Mês",
+      value: `${formatCurrency(data.margemMesValor)}${
+        data.margemMesPercentual == null
+          ? ""
+          : ` (${data.margemMesPercentual.toFixed(2)}%)`
+      }`,
+      icon: TrendingUp,
+      iconColor:
+        data.margemMesValor >= 0
+          ? "text-success bg-success-50"
+          : "text-danger bg-danger-50",
+      href: "/dashboard/relatorios/margem",
       comparison: {
         percentage: calcPercentChange(
-          data.faturamentoMes,
-          data.faturamentoMesAnterior
+          data.margemMesValor,
+          data.margemMesValorAnterior,
         ),
         label: "vs mês passado",
       },
@@ -151,7 +169,7 @@ function ChartSkeleton() {
           <div
             className={cn(
               "w-full bg-secondary-200 rounded-t animate-pulse",
-              heightClass
+              heightClass,
             )}
           />
           <SkeletonBlock className="h-3 w-full" />
@@ -224,6 +242,62 @@ function OrcamentosRecentesList({ items }: { items: OrcamentoRecente[] }) {
   );
 }
 
+function PocosNoPrejuizo({
+  items,
+}: {
+  items: {
+    servico_id: string;
+    margem: number;
+    margem_percentual: number | null;
+  }[];
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="rounded-lg border border-success-200 bg-success-50 p-4">
+        <p className="text-sm text-success font-medium">
+          Nenhum poço no prejuízo este mês 🎯
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-danger-200 bg-danger-50 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 text-danger">
+          <AlertTriangle className="h-4 w-4" />
+          <p className="text-sm font-semibold">⚠ Poços no prejuízo</p>
+        </div>
+        <Link
+          href="/dashboard/relatorios/margem?apenasPrejuizo=1"
+          className="text-xs text-danger hover:underline"
+        >
+          Ver todos
+        </Link>
+      </div>
+      <div className="space-y-2">
+        {items.slice(0, 5).map((item) => (
+          <Link
+            key={item.servico_id}
+            href={`/dashboard/servicos/${item.servico_id}`}
+            className="flex items-center justify-between rounded-md bg-white/80 px-3 py-2 hover:bg-white"
+          >
+            <span className="text-sm text-secondary-800">
+              Serviço #{item.servico_id.slice(0, 8).toUpperCase()}
+            </span>
+            <span className="text-sm font-semibold text-danger">
+              {formatCurrency(item.margem)}
+              {item.margem_percentual == null
+                ? ""
+                : ` (${item.margem_percentual.toFixed(2)}%)`}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface ActionCardProps {
   icon: React.ElementType;
   label: string;
@@ -232,7 +306,13 @@ interface ActionCardProps {
   primary?: boolean;
 }
 
-function ActionCard({ icon: Icon, label, href, iconColor, primary }: ActionCardProps) {
+function ActionCard({
+  icon: Icon,
+  label,
+  href,
+  iconColor,
+  primary,
+}: ActionCardProps) {
   return (
     <Link
       href={href}
@@ -240,10 +320,15 @@ function ActionCard({ icon: Icon, label, href, iconColor, primary }: ActionCardP
         "flex items-center gap-3 p-4 rounded-xl border transition-all",
         primary
           ? "border-primary bg-primary text-white hover:bg-primary/90"
-          : "border-secondary-200 bg-white hover:bg-secondary-50 text-secondary-700"
+          : "border-secondary-200 bg-white hover:bg-secondary-50 text-secondary-700",
       )}
     >
-      <div className={cn("rounded-lg p-2 shrink-0", primary ? "bg-white/20" : iconColor)}>
+      <div
+        className={cn(
+          "rounded-lg p-2 shrink-0",
+          primary ? "bg-white/20" : iconColor,
+        )}
+      >
         <Icon className={cn("h-5 w-5", primary ? "text-white" : "")} />
       </div>
       <span className="text-sm font-medium leading-tight">{label}</span>
@@ -272,7 +357,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-
       {/* Saudação */}
       <div>
         <h1 className="text-2xl font-bold text-secondary-900">
@@ -294,7 +378,6 @@ export default function DashboardPage() {
 
       {/* Gráfico + Últimos Orçamentos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* Receita vs Despesa — 2/3 */}
         <div className="lg:col-span-2 rounded-xl border border-secondary-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-secondary-900 mb-4">
@@ -326,7 +409,6 @@ export default function DashboardPage() {
             <OrcamentosRecentesList items={data!.orcamentosRecentes} />
           )}
         </div>
-
       </div>
 
       {/* Próximas Ações */}
@@ -363,8 +445,15 @@ export default function DashboardPage() {
             />
           </div>
         )}
-      </div>
 
+        <div className="mt-5">
+          {loading ? (
+            <ListSkeleton rows={2} />
+          ) : (
+            <PocosNoPrejuizo items={data!.pocosNoPrejuizo} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

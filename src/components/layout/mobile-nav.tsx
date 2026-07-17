@@ -10,6 +10,7 @@ import {
   FileText,
   Wrench,
   DollarSign,
+  BarChart3,
   UserCircle,
   LogOut,
   Droplets,
@@ -24,6 +25,7 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/dashboard/orcamentos": FileText,
   "/dashboard/servicos": Wrench,
   "/dashboard/financeiro": DollarSign,
+  "/dashboard/relatorios/margem": BarChart3,
   "/dashboard/perfil": UserCircle,
 };
 

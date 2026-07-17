@@ -30,6 +30,17 @@ export type DashboardData = {
   chartData: ChartDataPoint[];
   orcamentosAguardandoAprovacao: number;
   servicosEmAndamento: number;
+  margemMesValor: number;
+  margemMesPercentual: number | null;
+  margemMesValorAnterior: number;
+  margemMesPercentualAnterior: number | null;
+  pocosNoPrejuizo: {
+    servico_id: string;
+    margem: number;
+    margem_percentual: number | null;
+    custo: number;
+    receita: number;
+  }[];
   error: string | null;
 };
 
@@ -62,6 +73,11 @@ const empty: Omit<DashboardData, "error"> = {
   chartData: [],
   orcamentosAguardandoAprovacao: 0,
   servicosEmAndamento: 0,
+  margemMesValor: 0,
+  margemMesPercentual: null,
+  margemMesValorAnterior: 0,
+  margemMesPercentualAnterior: null,
+  pocosNoPrejuizo: [],
 };
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -84,6 +100,13 @@ export async function getDashboardData(): Promise<DashboardData> {
     const sixMonthsAgoISO = new Date(now.getFullYear(), now.getMonth() - 5, 1)
       .toISOString()
       .slice(0, 10);
+    const twoMonthsAgoStartISO = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1,
+    )
+      .toISOString()
+      .slice(0, 10);
 
     const activeStatuses = ["enviado", "aprovado", "em_execucao"];
 
@@ -100,6 +123,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       chartFinanceiroRes,
       orcamentosAguardandoRes,
       servicosEmAndamentoRes,
+      margemRowsRes,
     ] = await Promise.all([
       // Q1 — total clientes
       supabase
@@ -192,7 +216,22 @@ export async function getDashboardData(): Promise<DashboardData> {
         .select("id", { count: "exact", head: true })
         .eq("perfurador_id", perfuradorId)
         .is("data_conclusao", null),
+
+      // Q13 — margem dos serviços concluídos no mês atual e anterior
+      supabase
+        .from("vw_margem_servico")
+        .select("servico_id, margem, margem_percentual, custo, receita")
+        .eq("perfurador_id", perfuradorId)
+        .in("status", ["concluido"]),
     ]);
+
+    const { data: servicosConclusaoRows } = await supabase
+      .from("servicos")
+      .select("id, data_conclusao")
+      .eq("perfurador_id", perfuradorId)
+      .eq("status", "concluido")
+      .gte("data_conclusao", twoMonthsAgoStartISO)
+      .lt("data_conclusao", nextMonthStartISO);
 
     // Somatórios de receita
     const faturamentoMes = (faturamentoMesRes.data ?? []).reduce(
@@ -224,6 +263,76 @@ export async function getDashboardData(): Promise<DashboardData> {
       }),
     );
 
+    const margemMap = new Map<
+      string,
+      { margem: number; margem_percentual: number | null }
+    >();
+    for (const row of margemRowsRes.data ?? []) {
+      margemMap.set(row.servico_id as string, {
+        margem: (row.margem as number) ?? 0,
+        margem_percentual: (row.margem_percentual as number | null) ?? null,
+      });
+    }
+
+    const thisMonthServicoIds = new Set<string>();
+    const lastMonthServicoIds = new Set<string>();
+
+    for (const row of servicosConclusaoRows ?? []) {
+      const dataConclusao = row.data_conclusao as string | null;
+      if (!dataConclusao) continue;
+
+      if (
+        dataConclusao >= thisMonthStartISO &&
+        dataConclusao < nextMonthStartISO
+      ) {
+        thisMonthServicoIds.add(row.id as string);
+      } else if (
+        dataConclusao >= lastMonthStartISO &&
+        dataConclusao < thisMonthStartISO
+      ) {
+        lastMonthServicoIds.add(row.id as string);
+      }
+    }
+
+    const calcMargemBucket = (ids: Set<string>) => {
+      let margemTotal = 0;
+      let percentualTotal = 0;
+      let percentualCount = 0;
+
+      for (const id of Array.from(ids)) {
+        const row = margemMap.get(id);
+        if (!row) continue;
+        margemTotal += row.margem;
+        if (row.margem_percentual != null) {
+          percentualTotal += row.margem_percentual;
+          percentualCount += 1;
+        }
+      }
+
+      return {
+        margemValor: margemTotal,
+        margemPercentual:
+          percentualCount > 0
+            ? Number((percentualTotal / percentualCount).toFixed(2))
+            : null,
+      };
+    };
+
+    const thisMonthMargem = calcMargemBucket(thisMonthServicoIds);
+    const lastMonthMargem = calcMargemBucket(lastMonthServicoIds);
+
+    const pocosNoPrejuizo = (margemRowsRes.data ?? [])
+      .filter((row) => (row.margem as number) < 0)
+      .sort((a, b) => (a.margem as number) - (b.margem as number))
+      .slice(0, 5)
+      .map((row) => ({
+        servico_id: row.servico_id as string,
+        margem: row.margem as number,
+        margem_percentual: (row.margem_percentual as number | null) ?? null,
+        custo: (row.custo as number) ?? 0,
+        receita: (row.receita as number) ?? 0,
+      }));
+
     return {
       nomePerfurador,
       totalClientes: totalClientesRes.count ?? 0,
@@ -247,6 +356,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       chartData,
       orcamentosAguardandoAprovacao: orcamentosAguardandoRes.count ?? 0,
       servicosEmAndamento: servicosEmAndamentoRes.count ?? 0,
+      margemMesValor: thisMonthMargem.margemValor,
+      margemMesPercentual: thisMonthMargem.margemPercentual,
+      margemMesValorAnterior: lastMonthMargem.margemValor,
+      margemMesPercentualAnterior: lastMonthMargem.margemPercentual,
+      pocosNoPrejuizo,
       error: null,
     };
   } catch (err) {

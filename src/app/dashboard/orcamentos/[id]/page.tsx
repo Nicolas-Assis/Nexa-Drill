@@ -198,10 +198,23 @@ export default function OrcamentoDetalhePage({
     if (!orcamento) return;
     setSubmitting(true);
 
+    let servicoIdParaConclusao = servicoId;
+
+    if (!servicoIdParaConclusao) {
+      const servicoResult = await createServicoDeOrcamento(orcamento.id);
+      if (servicoResult.error || !servicoResult.servicoId) {
+        setSubmitting(false);
+        toast.error(servicoResult.error ?? "Não foi possível criar o serviço");
+        return;
+      }
+      servicoIdParaConclusao = servicoResult.servicoId;
+      setServicoId(servicoIdParaConclusao);
+    }
+
     const [statusResult, lancamentoResult] = await Promise.all([
       updateOrcamentoStatus(orcamento.id, "concluido"),
       createLancamentoConclusao({
-        servicoId: servicoId,
+        servicoId: servicoIdParaConclusao,
         valor: concluirForm.valor,
         desconto: concluirForm.desconto,
         data: concluirForm.data,
@@ -219,8 +232,8 @@ export default function OrcamentoDetalhePage({
       hasError = true;
     }
 
-    if (servicoId) {
-      const s = await concluirServico(servicoId);
+    if (servicoIdParaConclusao) {
+      const s = await concluirServico(servicoIdParaConclusao);
       if (s.error) toast.error(`Erro ao concluir serviço: ${s.error}`);
     }
 

@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ServicoForm } from "@/components/servicos/servico-form";
+import { MargemCard } from "@/components/servicos/margem-card";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   STATUS_SERVICO_OPTIONS,
@@ -354,6 +355,11 @@ export default function ServicoDetalhePage({
           </CardContent>
         </Card>
       )}
+
+      <MargemCard
+        servicoId={servico.id}
+        profundidadeReal={servico.profundidade_real_metros}
+      />
 
       {/* Client + Orcamento */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
