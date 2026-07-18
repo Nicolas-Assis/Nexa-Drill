@@ -17,3 +17,14 @@ export function formatCurrency(value: number): string {
 export function formatDate(date: string | Date, pattern: string = "dd/MM/yyyy"): string {
   return format(new Date(date), pattern, { locale: ptBR });
 }
+
+/**
+ * Normaliza um embed de relacionamento do supabase-js.
+ * Um FK to-one (ex.: `cliente:clientes(...)`) retorna um objeto único, mas
+ * dependendo da inferência pode vir tipado/serializado como array. Este helper
+ * lida com ambos os formatos e devolve o primeiro registro (ou null).
+ */
+export function firstOf<T>(embed: T | T[] | null | undefined): T | null {
+  if (Array.isArray(embed)) return embed.length > 0 ? embed[0] : null;
+  return embed ?? null;
+}

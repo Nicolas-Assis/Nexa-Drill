@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  Droplets,
   FileText,
   BarChart3,
   Globe,
@@ -13,20 +12,12 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
+import { Logo as BrandLogo } from "@/components/brand/logo";
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 
 function Logo() {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-700 shadow-md shadow-primary/30">
-        <Droplets className="h-5 w-5 text-white" />
-      </div>
-      <span className="text-xl font-bold text-secondary-900">
-        Nexa<span className="text-primary">Drill</span>
-      </span>
-    </div>
-  );
+  return <BrandLogo variant="full" surface="light" height={26} />;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -161,9 +152,7 @@ export default function LandingPage() {
                     {/* Mock header */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary-700 flex items-center justify-center">
-                          <Droplets className="h-5 w-5 text-white" />
-                        </div>
+                        <BrandLogo variant="mark" height={40} />
                         <div>
                           <p className="text-sm font-bold text-secondary-900">
                             Dashboard
@@ -600,14 +589,7 @@ export default function LandingPage() {
       <footer className="border-t border-secondary-200 bg-secondary-900 py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-700">
-                <Droplets className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">
-                Nexa<span className="text-primary-300">Drill</span>
-              </span>
-            </div>
+            <BrandLogo variant="full" surface="dark" height={26} />
 
             <nav className="flex flex-wrap items-center gap-6 text-sm text-secondary-400">
               <Link

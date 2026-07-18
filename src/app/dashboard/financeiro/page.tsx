@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   TrendingUp,
   TrendingDown,
@@ -10,6 +11,7 @@ import {
   Trash2,
   Plus,
   Loader2,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -181,8 +183,8 @@ export default function FinanceiroPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Financeiro</h1>
-          <p className="text-secondary-500">
+          <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
+          <p className="text-muted-foreground">
             Acompanhe suas receitas e despesas
           </p>
         </div>
@@ -191,7 +193,7 @@ export default function FinanceiroPage() {
             aria-label="Período"
             value={periodo}
             onChange={(e) => setPeriodo(e.target.value as Periodo)}
-            className="h-9 rounded-lg border border-secondary-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {PERIODO_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -199,6 +201,12 @@ export default function FinanceiroPage() {
               </option>
             ))}
           </select>
+          <Link href="/dashboard/receber">
+            <Button variant="outline" size="sm">
+              <Wallet className="h-4 w-4 mr-1" />
+              Cobranças
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="sm"
@@ -220,7 +228,7 @@ export default function FinanceiroPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Receita Total</p>
+                <p className="text-sm text-muted-foreground">Receita Total</p>
                 <p className="text-2xl font-bold text-success mt-1">
                   {loading ? "—" : formatCurrency(resumo.totalReceita)}
                 </p>
@@ -236,7 +244,7 @@ export default function FinanceiroPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Despesas Total</p>
+                <p className="text-sm text-muted-foreground">Despesas Total</p>
                 <p className="text-2xl font-bold text-danger mt-1">
                   {loading ? "—" : formatCurrency(resumo.totalDespesa)}
                 </p>
@@ -252,12 +260,12 @@ export default function FinanceiroPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Lucro Líquido</p>
+                <p className="text-sm text-muted-foreground">Lucro Líquido</p>
                 <p
                   className={cn(
                     "text-2xl font-bold mt-1",
                     loading
-                      ? "text-secondary-400"
+                      ? "text-muted-foreground"
                       : resumo.lucroLiquido >= 0
                         ? "text-primary"
                         : "text-danger",
@@ -277,7 +285,7 @@ export default function FinanceiroPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-secondary-500">Ticket Médio</p>
+                <p className="text-sm text-muted-foreground">Ticket Médio</p>
                 <p className="text-2xl font-bold text-accent mt-1">
                   {loading ? "—" : formatCurrency(resumo.ticketMedio)}
                 </p>
@@ -300,7 +308,7 @@ export default function FinanceiroPage() {
             {!loading && resumo.porMes.length > 0 ? (
               <ChartReceitaDespesa data={resumo.porMes} />
             ) : (
-              <p className="text-sm text-secondary-400 text-center py-12">
+              <p className="text-sm text-muted-foreground text-center py-12">
                 {loading
                   ? "Carregando..."
                   : "Nenhum dado no período selecionado."}
@@ -315,7 +323,7 @@ export default function FinanceiroPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-secondary-400 text-center py-12">
+              <p className="text-sm text-muted-foreground text-center py-12">
                 Carregando...
               </p>
             ) : (
@@ -333,7 +341,7 @@ export default function FinanceiroPage() {
               <CardTitle>
                 Lançamentos
                 {!loading && (
-                  <span className="ml-2 text-sm font-normal text-secondary-400">
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
                     ({lancamentos.length})
                   </span>
                 )}
@@ -358,7 +366,7 @@ export default function FinanceiroPage() {
                     <TableRow key={i}>
                       {Array.from({ length: 6 }).map((_, j) => (
                         <TableCell key={j}>
-                          <div className="h-4 bg-secondary-100 rounded animate-pulse" />
+                          <div className="h-4 bg-muted rounded animate-pulse" />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -367,7 +375,7 @@ export default function FinanceiroPage() {
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="text-center py-12 text-secondary-400"
+                      className="text-center py-12 text-muted-foreground"
                     >
                       Nenhum lançamento encontrado para o período selecionado.
                     </TableCell>
@@ -375,7 +383,7 @@ export default function FinanceiroPage() {
                 ) : (
                   paginated.map((l) => (
                     <TableRow key={l.id}>
-                      <TableCell className="text-sm text-secondary-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDate(l.data)}
                       </TableCell>
                       <TableCell>
@@ -385,10 +393,10 @@ export default function FinanceiroPage() {
                           {l.tipo === "receita" ? "Receita" : "Despesa"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-secondary-600">
+                      <TableCell className="text-sm text-muted-foreground">
                         {getCategoriaLabel(l.tipo, l.categoria)}
                       </TableCell>
-                      <TableCell className="text-sm text-secondary-900 max-w-xs truncate">
+                      <TableCell className="text-sm text-foreground max-w-xs truncate">
                         {l.descricao ?? "—"}
                       </TableCell>
                       <TableCell
@@ -407,7 +415,7 @@ export default function FinanceiroPage() {
                             onClick={() =>
                               setModal({ type: "edit", lancamento: l })
                             }
-                            className="p-1.5 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 transition-colors"
+                            className="p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary-50 transition-colors"
                             title="Editar"
                           >
                             <Pencil className="h-4 w-4" />
@@ -416,7 +424,7 @@ export default function FinanceiroPage() {
                             type="button"
                             onClick={() => confirmDelete(l.id)}
                             disabled={deletingId === l.id}
-                            className="p-1.5 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50"
+                            className="p-1.5 rounded text-muted-foreground hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50"
                             title="Excluir"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -431,8 +439,8 @@ export default function FinanceiroPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-secondary-100">
-                <p className="text-sm text-secondary-500">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+                <p className="text-sm text-muted-foreground">
                   Página {page} de {totalPages}
                 </p>
                 <div className="flex gap-2">
@@ -462,10 +470,10 @@ export default function FinanceiroPage() {
       {/* Transactions — Mobile Cards */}
       <div className="md:hidden space-y-2">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-sm font-semibold text-secondary-700">
+          <h3 className="text-sm font-semibold text-foreground">
             Lançamentos
             {!loading && (
-              <span className="ml-1 text-secondary-400 font-normal">
+              <span className="ml-1 text-muted-foreground font-normal">
                 ({lancamentos.length})
               </span>
             )}
@@ -475,14 +483,14 @@ export default function FinanceiroPage() {
           Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>
               <CardContent className="p-4">
-                <div className="h-4 bg-secondary-100 rounded animate-pulse mb-2 w-3/4" />
-                <div className="h-3 bg-secondary-100 rounded animate-pulse w-1/2" />
+                <div className="h-4 bg-muted rounded animate-pulse mb-2 w-3/4" />
+                <div className="h-3 bg-muted rounded animate-pulse w-1/2" />
               </CardContent>
             </Card>
           ))
         ) : paginated.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center text-secondary-400 text-sm">
+            <CardContent className="py-12 text-center text-muted-foreground text-sm">
               Nenhum lançamento encontrado para o período selecionado.
             </CardContent>
           </Card>
@@ -492,10 +500,10 @@ export default function FinanceiroPage() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-secondary-900 text-sm truncate">
+                    <p className="font-medium text-foreground text-sm truncate">
                       {l.descricao ?? getCategoriaLabel(l.tipo, l.categoria)}
                     </p>
-                    <p className="text-xs text-secondary-500 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {formatDate(l.data)} ·{" "}
                       {getCategoriaLabel(l.tipo, l.categoria)}
                     </p>
@@ -518,11 +526,11 @@ export default function FinanceiroPage() {
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-secondary-100">
+                <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-border">
                   <button
                     type="button"
                     onClick={() => setModal({ type: "edit", lancamento: l })}
-                    className="p-2 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="p-2 rounded text-muted-foreground hover:text-primary hover:bg-primary-50 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Editar"
                   >
                     <Pencil className="h-4 w-4" />
@@ -531,7 +539,7 @@ export default function FinanceiroPage() {
                     type="button"
                     onClick={() => confirmDelete(l.id)}
                     disabled={deletingId === l.id}
-                    className="p-2 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="p-2 rounded text-muted-foreground hover:text-danger hover:bg-danger-50 transition-colors disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Excluir"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -544,7 +552,7 @@ export default function FinanceiroPage() {
         {/* Mobile Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between pt-2">
-            <p className="text-sm text-secondary-500">
+            <p className="text-sm text-muted-foreground">
               {page}/{totalPages}
             </p>
             <div className="flex gap-2">
@@ -611,7 +619,7 @@ export default function FinanceiroPage() {
             Excluir Lançamento
           </DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-secondary-600 mt-2 mb-6">
+        <p className="text-sm text-muted-foreground mt-2 mb-6">
           Tem certeza que deseja excluir este lançamento? Esta ação não pode ser
           desfeita.
         </p>

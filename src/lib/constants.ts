@@ -6,6 +6,17 @@ import {
   MetodoPagamento,
   SituacaoParcela,
 } from "@/types";
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Wrench,
+  Wallet,
+  DollarSign,
+  BarChart3,
+  UserCircle,
+  type LucideIcon,
+} from "lucide-react";
 
 export const STATUS_ORCAMENTO_OPTIONS: {
   value: StatusOrcamento;
@@ -206,16 +217,32 @@ export const METODO_PAGAMENTO_LABELS: Record<MetodoPagamento, string> = {
 
 // ─── Nav items do dashboard ───────────────────────────────────────────────────
 
-export const DASHBOARD_NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/clientes", label: "Clientes" },
-  { href: "/dashboard/orcamentos", label: "Orçamentos" },
-  { href: "/dashboard/servicos", label: "Serviços" },
-  { href: "/dashboard/receber", label: "Contas a Receber" },
-  { href: "/dashboard/financeiro", label: "Financeiro" },
-  { href: "/dashboard/relatorios/margem", label: "Relatórios" },
-  { href: "/dashboard/perfil", label: "Meu Perfil" },
-] as const;
+export type NavGroup = "Visão Geral" | "Operação" | "Financeiro" | "Conta";
+
+export type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  group: NavGroup;
+};
+
+export const DASHBOARD_NAV_ITEMS: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, group: "Visão Geral" },
+  { href: "/dashboard/clientes", label: "Clientes", icon: Users, group: "Operação" },
+  { href: "/dashboard/orcamentos", label: "Orçamentos", icon: FileText, group: "Operação" },
+  { href: "/dashboard/servicos", label: "Serviços", icon: Wrench, group: "Operação" },
+  { href: "/dashboard/receber", label: "Contas a Receber", icon: Wallet, group: "Financeiro" },
+  { href: "/dashboard/financeiro", label: "Financeiro", icon: DollarSign, group: "Financeiro" },
+  { href: "/dashboard/relatorios/margem", label: "Relatórios", icon: BarChart3, group: "Financeiro" },
+  { href: "/dashboard/perfil", label: "Meu Perfil", icon: UserCircle, group: "Conta" },
+];
+
+export const NAV_GROUP_ORDER: NavGroup[] = [
+  "Visão Geral",
+  "Operação",
+  "Financeiro",
+  "Conta",
+];
 
 // ─── Page titles ──────────────────────────────────────────────────────────────
 
@@ -229,4 +256,5 @@ export const PAGE_TITLES: Record<string, string> = {
   "/dashboard/financeiro": "Financeiro",
   "/dashboard/relatorios/margem": "Relatórios de Margem",
   "/dashboard/perfil": "Meu Perfil",
+  "/dashboard/termos": "Termos e Privacidade",
 };

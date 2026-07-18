@@ -24,20 +24,20 @@ export function ClienteCard({ cliente, onEdit, onDelete }: ClienteCardProps) {
           <div className="flex-1 min-w-0">
             <Link
               href={`/dashboard/clientes/${cliente.id}`}
-              className="text-sm font-semibold text-secondary-900 hover:text-primary transition-colors"
+              className="text-sm font-semibold text-foreground hover:text-primary transition-colors"
             >
               {cliente.nome}
             </Link>
             <div className="mt-1.5 space-y-1">
               <a
                 href={`tel:${cliente.telefone}`}
-                className="flex items-center gap-1.5 text-sm text-secondary-500 hover:text-primary transition-colors"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 <Phone className="h-3.5 w-3.5 shrink-0" />
                 {cliente.telefone}
               </a>
               {location && (
-                <p className="flex items-center gap-1.5 text-sm text-secondary-400">
+                <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
                   {location}
                 </p>
@@ -46,13 +46,13 @@ export function ClienteCard({ cliente, onEdit, onDelete }: ClienteCardProps) {
           </div>
           <DropdownMenu
             trigger={
-              <button className="rounded-lg p-1.5 text-secondary-400 hover:bg-secondary-50 hover:text-secondary-600">
+              <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-muted-foreground">
                 <MoreHorizontal className="h-4 w-4" />
               </button>
             }
           >
             <DropdownMenuItem onClick={() => onEdit(cliente)}>
-              <Pencil className="mr-2 h-4 w-4 text-secondary-400" />
+              <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -68,7 +68,7 @@ export function ClienteCard({ cliente, onEdit, onDelete }: ClienteCardProps) {
           <Badge variant={cliente._orcamentosCount > 0 ? "info" : "default"}>
             {cliente._orcamentosCount} orçamento{cliente._orcamentosCount !== 1 ? "s" : ""}
           </Badge>
-          <span className="text-xs text-secondary-400">
+          <span className="text-xs text-muted-foreground">
             {formatDate(cliente.created_at)}
           </span>
         </div>

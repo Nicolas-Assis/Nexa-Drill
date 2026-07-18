@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { firstOf } from "@/lib/utils";
 
 export type MargemRelatorioRow = {
   servico_id: string;
@@ -51,12 +52,11 @@ export async function getRelatorioMargem(): Promise<{
     >();
 
     for (const servico of servicosRows ?? []) {
-      const clienteArray = servico.cliente as { nome: string }[] | null;
+      const cliente = firstOf(
+        servico.cliente as { nome: string } | { nome: string }[] | null,
+      );
       servicoMap.set(servico.id as string, {
-        cliente_nome:
-          clienteArray && clienteArray.length > 0
-            ? (clienteArray[0].nome as string)
-            : null,
+        cliente_nome: cliente?.nome ?? null,
         data_conclusao: (servico.data_conclusao as string | null) ?? null,
       });
     }

@@ -52,8 +52,8 @@ type ServicoWithRelations = Servico & {
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs text-secondary-400 mb-0.5">{label}</p>
-      <p className="text-sm font-medium text-secondary-900">{value ?? "—"}</p>
+      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-foreground">{value ?? "—"}</p>
     </div>
   );
 }
@@ -254,14 +254,14 @@ export default function ServicoDetalhePage({
       <div>
         <Link
           href="/dashboard/servicos"
-          className="inline-flex items-center gap-1 text-sm text-secondary-500 hover:text-secondary-700 transition-colors mb-3"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar para serviços
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-secondary-900">
+            <h1 className="text-2xl font-bold text-foreground">
               Detalhes do Serviço
             </h1>
             {getStatusBadge(servico.status)}
@@ -341,14 +341,14 @@ export default function ServicoDetalhePage({
               <CardTitle>Cliente</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1 text-sm">
-              <p className="font-medium text-secondary-900">
+              <p className="font-medium text-foreground">
                 {servico.cliente.nome}
               </p>
               {servico.cliente.telefone && (
-                <p className="text-secondary-500">{servico.cliente.telefone}</p>
+                <p className="text-muted-foreground">{servico.cliente.telefone}</p>
               )}
               {(servico.cliente.cidade || servico.cliente.estado) && (
-                <p className="text-secondary-500">
+                <p className="text-muted-foreground">
                   {[servico.cliente.cidade, servico.cliente.estado]
                     .filter(Boolean)
                     .join(" / ")}
@@ -371,13 +371,13 @@ export default function ServicoDetalhePage({
                 #{servico.orcamento.id.slice(0, 8).toUpperCase()}
               </Link>
               {servico.orcamento.tipo_servico && (
-                <p className="text-secondary-500">
+                <p className="text-muted-foreground">
                   {SERVICO_LABELS[servico.orcamento.tipo_servico] ??
                     servico.orcamento.tipo_servico}
                 </p>
               )}
               {servico.orcamento.valor_final != null && (
-                <p className="font-semibold text-secondary-900">
+                <p className="font-semibold text-foreground">
                   {formatCurrency(servico.orcamento.valor_final)}
                 </p>
               )}
@@ -385,6 +385,56 @@ export default function ServicoDetalhePage({
           </Card>
         )}
       </div>
+
+      {/* Escopo do orçamento (itens + observações, via vínculo) */}
+      {servico.orcamento &&
+        Array.isArray(servico.orcamento.itens) &&
+        servico.orcamento.itens.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Escopo do Orçamento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {servico.orcamento.itens.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between text-sm py-2 border-b border-border last:border-0"
+                  >
+                    <div>
+                      <span className="text-foreground">{item.descricao}</span>
+                      <span className="text-muted-foreground ml-2">
+                        ({item.qtd} {item.unidade} ×{" "}
+                        {formatCurrency(item.valor_unit)})
+                      </span>
+                    </div>
+                    <span className="font-medium text-foreground shrink-0 ml-4">
+                      {formatCurrency(item.qtd * item.valor_unit)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {servico.orcamento.valor_final != null && (
+                <div className="mt-4 flex justify-between border-t border-border pt-3 text-sm">
+                  <span className="font-semibold">Total do orçamento</span>
+                  <span className="font-bold text-primary">
+                    {formatCurrency(servico.orcamento.valor_final)}
+                  </span>
+                </div>
+              )}
+              {servico.orcamento.observacoes && (
+                <div className="mt-4 border-t border-border pt-3">
+                  <p className="mb-1 text-sm text-muted-foreground">
+                    Observações do orçamento:
+                  </p>
+                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                    {servico.orcamento.observacoes}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
       {/* Dates */}
       <Card>
@@ -469,8 +519,8 @@ export default function ServicoDetalhePage({
           />
           {servico.notas && (
             <div className="col-span-2 sm:col-span-3">
-              <p className="text-xs text-secondary-400 mb-0.5">Notas</p>
-              <p className="text-sm text-secondary-900 whitespace-pre-wrap">
+              <p className="text-xs text-muted-foreground mb-0.5">Notas</p>
+              <p className="text-sm text-foreground whitespace-pre-wrap">
                 {servico.notas}
               </p>
             </div>
@@ -518,7 +568,7 @@ export default function ServicoDetalhePage({
                   <img
                     src={foto}
                     alt={`Foto ${index + 1}`}
-                    className="h-32 w-full object-cover rounded-lg border border-secondary-200"
+                    className="h-32 w-full object-cover rounded-lg border border-border"
                   />
                   <Button
                     variant="danger"
@@ -537,7 +587,7 @@ export default function ServicoDetalhePage({
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-secondary-400">
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <ImageIcon className="h-12 w-12 mb-3" />
               <p className="text-sm">Nenhuma foto adicionada</p>
               <p className="text-xs mt-1">
@@ -575,7 +625,7 @@ export default function ServicoDetalhePage({
         <DialogHeader>
           <DialogTitle>Confirmar exclusão</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-secondary-600 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           Tem certeza que deseja excluir este serviço? Esta ação não pode ser
           desfeita.
         </p>

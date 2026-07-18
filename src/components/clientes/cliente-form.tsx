@@ -50,8 +50,8 @@ export function ClienteForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="rounded-lg border border-secondary-200 p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-secondary-800">
+      <div className="rounded-lg border border-border p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">
           Dados principais
         </h3>
 
@@ -96,8 +96,8 @@ export function ClienteForm({
         />
       </div>
 
-      <div className="rounded-lg border border-secondary-200 p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-secondary-800">
+      <div className="rounded-lg border border-border p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">
           Endereço e observações
         </h3>
 
@@ -149,7 +149,7 @@ export function ClienteForm({
             })}
             error={errors.notas?.message}
           />
-          <p className="text-xs text-secondary-500 text-right">
+          <p className="text-xs text-muted-foreground text-right">
             {notasValue.length}/500
           </p>
         </div>

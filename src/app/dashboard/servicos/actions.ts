@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { firstOf } from "@/lib/utils";
 import type { Servico, Cliente, Orcamento } from "@/types";
 
 export async function getServicos(): Promise<{
@@ -269,9 +270,10 @@ export async function getOrcamentosForSelect(): Promise<{
     if (error) return { orcamentos: [], error: error.message };
 
     const orcamentos = (data ?? []).map((o) => {
-      const clienteArray = o.cliente as { nome: string }[] | null;
-      const clienteNome =
-        clienteArray && clienteArray.length > 0 ? clienteArray[0].nome : null;
+      const cliente = firstOf(
+        o.cliente as { nome: string } | { nome: string }[] | null,
+      );
+      const clienteNome = cliente?.nome ?? null;
       return {
         id: o.id as string,
         label: `${clienteNome ?? "Cliente"} — ${o.tipo_servico ?? "Serviço"} (#${(o.id as string).slice(0, 6)})`,

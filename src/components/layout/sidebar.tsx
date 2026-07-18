@@ -2,30 +2,58 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Wrench,
-  DollarSign,
-  BarChart3,
-  UserCircle,
-  LogOut,
-  Droplets,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
-import { DASHBOARD_NAV_ITEMS } from "@/lib/constants";
+import {
+  DASHBOARD_NAV_ITEMS,
+  NAV_GROUP_ORDER,
+  type NavItem,
+} from "@/lib/constants";
+import { Logo } from "@/components/brand/logo";
 
-const NAV_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  "/dashboard": LayoutDashboard,
-  "/dashboard/clientes": Users,
-  "/dashboard/orcamentos": FileText,
-  "/dashboard/servicos": Wrench,
-  "/dashboard/financeiro": DollarSign,
-  "/dashboard/relatorios/margem": BarChart3,
-  "/dashboard/perfil": UserCircle,
-};
+function isItemActive(pathname: string, href: string) {
+  return href === "/dashboard"
+    ? pathname === "/dashboard"
+    : pathname.startsWith(href);
+}
+
+function NavLink({
+  item,
+  pathname,
+  onClick,
+}: {
+  item: NavItem;
+  pathname: string;
+  onClick?: () => void;
+}) {
+  const Icon = item.icon;
+  const active = isItemActive(pathname, item.href);
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+        active
+          ? "bg-sidebar-accent text-white"
+          : "text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-white",
+      )}
+    >
+      {active && (
+        <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
+      )}
+      <Icon
+        className={cn(
+          "h-5 w-5 shrink-0 transition-colors",
+          active ? "text-primary-300" : "text-sidebar-muted group-hover:text-white",
+        )}
+      />
+      {item.label}
+    </Link>
+  );
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -37,51 +65,37 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:border-r lg:border-secondary-200 bg-white">
+    <aside className="hidden bg-sidebar text-sidebar-foreground lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-sidebar-border">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-secondary-200 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-sm shadow-primary/25">
-          <Droplets className="h-5 w-5 text-white" />
-        </div>
-        <span className="text-lg font-bold text-secondary-900">NexaDrill</span>
+      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+        <Link href="/dashboard" className="flex items-center">
+          <Logo variant="full" surface="dark" height={24} priority />
+        </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {DASHBOARD_NAV_ITEMS.map((item) => {
-          const Icon = NAV_ICONS[item.href] || LayoutDashboard;
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+      {/* Navigation agrupada */}
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        {NAV_GROUP_ORDER.map((group) => {
+          const items = DASHBOARD_NAV_ITEMS.filter((i) => i.group === group);
+          if (items.length === 0) return null;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900",
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-5 w-5",
-                  isActive ? "text-primary" : "text-secondary-400",
-                )}
-              />
-              {item.label}
-            </Link>
+            <div key={group} className="space-y-1">
+              <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted/70">
+                {group}
+              </p>
+              {items.map((item) => (
+                <NavLink key={item.href} item={item} pathname={pathname} />
+              ))}
+            </div>
           );
         })}
       </nav>
 
       {/* Logout */}
-      <div className="border-t border-secondary-200 p-3">
+      <div className="border-t border-sidebar-border p-3">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-secondary-500 hover:bg-danger-50 hover:text-danger transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-muted transition-colors hover:bg-danger/20 hover:text-white"
         >
           <LogOut className="h-5 w-5" />
           Sair

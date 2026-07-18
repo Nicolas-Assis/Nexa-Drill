@@ -150,7 +150,7 @@ export function ServicoForm({
       </div>
 
       {/* Dados técnicos */}
-      <p className="text-sm font-medium text-secondary-700 pt-1">
+      <p className="text-sm font-medium text-foreground pt-1">
         Dados técnicos (opcional)
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

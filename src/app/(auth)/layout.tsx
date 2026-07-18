@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { Droplets, Shield, FileText, BarChart3, Globe } from "lucide-react";
+import { Shield, FileText, BarChart3, Globe, Check } from "lucide-react";
+import { Logo } from "@/components/brand/logo";
+
+const FEATURES = [
+  { icon: FileText, label: "Orçamentos em PDF", delay: "delay-100" },
+  { icon: BarChart3, label: "Controle financeiro", delay: "delay-200" },
+  { icon: Globe, label: "Perfil público", delay: "delay-300" },
+  { icon: Shield, label: "Dados seguros", delay: "delay-400" },
+];
+
+const TRUST = ["Gratuito para começar", "Sem cartão de crédito", "Dados protegidos"];
 
 export default function AuthLayout({
   children,
@@ -9,42 +19,34 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-screen">
       {/* Left side – Branding panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700">
-        {/* Decorative elements */}
+      <div className="relative hidden overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 lg:flex lg:w-1/2">
+        {/* Decorative glows */}
         <div
           aria-hidden="true"
-          className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary-600/30 blur-3xl"
+          className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary-500/20 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-accent/10 blur-3xl"
+          className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-sky-400/10 blur-3xl"
         />
-        <div
-          aria-hidden="true"
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-success/5 blur-3xl"
-        />
+        {/* Grid técnico */}
+        <div className="tech-grid absolute inset-0 opacity-[0.4]" />
 
-        {/* Pattern overlay */}
-        <div className="absolute inset-0 water-pattern opacity-[0.15]" />
-
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+        <div className="relative z-10 flex w-full flex-col justify-between p-12">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm border border-white/20 group-hover:bg-white/20 transition-all">
-              <Droplets className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">NexaDrill</span>
+          <Link href="/" className="w-fit">
+            <Logo variant="full" surface="dark" height={30} priority />
           </Link>
 
-          {/* Main content area */}
-          <div className="space-y-8 animate-fade-in">
+          {/* Main content */}
+          <div className="animate-fade-in space-y-8">
             <div>
-              <h2 className="text-4xl font-bold text-white leading-tight">
+              <h2 className="font-display text-4xl font-bold leading-tight text-white">
                 Gerencie seu negócio de{" "}
-                <span className="text-accent-300">perfuração</span> como um
+                <span className="text-sky-300">perfuração</span> como um
                 profissional
               </h2>
-              <p className="mt-4 text-lg text-primary-100 leading-relaxed max-w-md">
+              <p className="mt-4 max-w-md text-lg leading-relaxed text-primary-100">
                 Orçamentos, financeiro, clientes e perfil público. Tudo em uma
                 plataforma feita para você.
               </p>
@@ -52,25 +54,12 @@ export default function AuthLayout({
 
             {/* Feature pills */}
             <div className="grid grid-cols-2 gap-3">
-              {[
-                {
-                  icon: FileText,
-                  label: "Orçamentos em PDF",
-                  delay: "delay-100",
-                },
-                {
-                  icon: BarChart3,
-                  label: "Controle financeiro",
-                  delay: "delay-200",
-                },
-                { icon: Globe, label: "Perfil público", delay: "delay-300" },
-                { icon: Shield, label: "Dados seguros", delay: "delay-400" },
-              ].map((f) => (
+              {FEATURES.map((f) => (
                 <div
                   key={f.label}
-                  className={`flex items-center gap-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 px-4 py-3 animate-fade-in-up ${f.delay}`}
+                  className={`flex animate-fade-in-up items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm ${f.delay}`}
                 >
-                  <f.icon className="h-5 w-5 text-accent-300 shrink-0" />
+                  <f.icon className="h-5 w-5 shrink-0 text-sky-300" />
                   <span className="text-sm font-medium text-white">
                     {f.label}
                   </span>
@@ -79,35 +68,27 @@ export default function AuthLayout({
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="flex gap-8 animate-fade-in delay-500">
-            <div>
-              <p className="text-3xl font-bold text-white">50+</p>
-              <p className="text-sm text-primary-200">Perfuradores ativos</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-white">1.000+</p>
-              <p className="text-sm text-primary-200">Orçamentos criados</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-white">100%</p>
-              <p className="text-sm text-primary-200">Gratuito</p>
-            </div>
+          {/* Trust signals honestos (substituem métricas inventadas) */}
+          <div className="flex animate-fade-in flex-wrap gap-x-6 gap-y-2 delay-500">
+            {TRUST.map((t) => (
+              <span
+                key={t}
+                className="inline-flex items-center gap-2 text-sm text-primary-100"
+              >
+                <Check className="h-4 w-4 text-sky-300" />
+                {t}
+              </span>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Right side – Form */}
-      <div className="flex w-full lg:w-1/2 flex-col items-center justify-center bg-white auth-bg-pattern px-6 py-12 relative">
+      <div className="relative flex w-full flex-col items-center justify-center bg-background auth-bg-pattern px-6 py-12 lg:w-1/2">
         {/* Mobile-only logo */}
-        <Link
-          href="/"
-          className="mb-8 flex flex-col items-center gap-3 lg:hidden"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-700 shadow-lg shadow-primary/25 animate-pulse-glow">
-            <Droplets className="h-7 w-7 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-secondary-900">NexaDrill</h1>
+        <Link href="/" className="mb-8 flex flex-col items-center gap-3 lg:hidden">
+          <Logo variant="mark" height={52} className="shadow-lg" />
+          <Logo variant="full" surface="light" height={24} />
         </Link>
 
         <div className="w-full max-w-md animate-scale-in">{children}</div>
@@ -115,7 +96,7 @@ export default function AuthLayout({
         {/* Bottom decoration */}
         <div
           aria-hidden="true"
-          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-success"
+          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-900 via-primary to-sky-400"
         />
       </div>
     </div>

@@ -11,6 +11,8 @@ import {
   Trash2,
   QrCode,
   Plus,
+  Eye,
+  ArrowLeftRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,6 +42,7 @@ import {
   EditarParcelaModal,
   CancelarParcelaModal,
   NovaCobrancaModal,
+  VisualizarCobrancaModal,
 } from "@/components/parcelas/parcela-modais";
 import type { ParcelaAcao } from "@/components/parcelas/parcela-modais";
 import type { SituacaoParcela } from "@/types";
@@ -71,7 +74,8 @@ type ActionModal =
   | { type: "baixar"; parcela: ParcelaAcao }
   | { type: "cobrar"; parcela: ParcelaAcao }
   | { type: "editar"; parcela: ParcelaAcao }
-  | { type: "cancelar"; parcela: ParcelaAcao };
+  | { type: "cancelar"; parcela: ParcelaAcao }
+  | { type: "visualizar"; parcela: ParcelaAcao };
 
 export default function ReceberPage() {
   const [resumo, setResumo] = useState<ParcelasResumo | null>(null);
@@ -146,17 +150,25 @@ export default function ReceberPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Contas a Receber
           </h1>
-          <p className="text-secondary-500">
+          <p className="text-muted-foreground">
             Parcelas, cobrança por Pix e baixa de recebimentos
           </p>
         </div>
-        <Button onClick={() => setModal({ type: "nova" })}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova cobrança
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/dashboard/financeiro">
+            <Button variant="outline">
+              <ArrowLeftRight className="mr-2 h-4 w-4" />
+              Novo lançamento
+            </Button>
+          </Link>
+          <Button onClick={() => setModal({ type: "nova" })}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova cobrança
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -188,7 +200,7 @@ export default function ReceberPage() {
           }
           sub="últimos 90 dias"
           icon={Clock}
-          cor="text-secondary-600 bg-secondary-100"
+          cor="text-muted-foreground bg-muted"
         />
       </div>
 
@@ -204,7 +216,7 @@ export default function ReceberPage() {
                 "rounded-full border px-4 min-h-11 text-sm transition-colors",
                 situacao === f.value
                   ? "border-primary bg-primary text-white"
-                  : "border-secondary-300 bg-white text-secondary-700 hover:bg-secondary-50",
+                  : "border-input bg-card text-foreground hover:bg-muted",
               )}
             >
               {f.label}
@@ -224,9 +236,9 @@ export default function ReceberPage() {
       </div>
 
       {!loading && filtradas.length > 0 && (
-        <p className="text-sm text-secondary-500">
+        <p className="text-sm text-muted-foreground">
           {filtradas.length} parcela{filtradas.length !== 1 ? "s" : ""} · total{" "}
-          <span className="font-semibold text-secondary-700">
+          <span className="font-semibold text-foreground">
             {formatCurrency(totalFiltrado)}
           </span>
         </p>
@@ -238,8 +250,8 @@ export default function ReceberPage() {
             <Card key={i}>
               <CardContent className="p-4">
                 <div className="animate-pulse space-y-2">
-                  <div className="h-4 w-1/3 rounded bg-secondary-200" />
-                  <div className="h-3 w-2/3 rounded bg-secondary-200" />
+                  <div className="h-4 w-1/3 rounded bg-muted" />
+                  <div className="h-3 w-2/3 rounded bg-muted" />
                 </div>
               </CardContent>
             </Card>
@@ -247,7 +259,7 @@ export default function ReceberPage() {
         </div>
       ) : filtradas.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center text-secondary-400 text-sm space-y-3">
+          <CardContent className="py-12 text-center text-muted-foreground text-sm space-y-3">
             {parcelas.length === 0 ? (
               <>
                 <p>Nenhuma cobrança cadastrada ainda.</p>
@@ -299,7 +311,7 @@ export default function ReceberPage() {
                             (p.descricao ?? "Parcela")
                           )}
                           {p.numero_parcela && p.total_parcelas ? (
-                            <span className="text-xs text-secondary-400">
+                            <span className="text-xs text-muted-foreground">
                               {" "}
                               ({p.numero_parcela}/{p.total_parcelas})
                             </span>
@@ -331,10 +343,10 @@ export default function ReceberPage() {
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-medium text-secondary-900 text-sm truncate">
+                      <p className="font-medium text-foreground text-sm truncate">
                         {p.descricao ?? "Parcela"}
                       </p>
-                      <p className="text-xs text-secondary-500">
+                      <p className="text-xs text-muted-foreground">
                         {p.cliente_nome ?? "—"} · vence{" "}
                         {formatDate(p.vencimento)}
                       </p>
@@ -344,7 +356,7 @@ export default function ReceberPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-semibold text-secondary-900">
+                    <span className="font-semibold text-foreground">
                       {formatCurrency(p.valor)}
                     </span>
                     <RowActions parcela={p} setModal={setModal} />
@@ -392,6 +404,12 @@ export default function ReceberPage() {
           onDone={closeAndRefetch}
         />
       )}
+      {modal.type === "visualizar" && (
+        <VisualizarCobrancaModal
+          parcela={modal.parcela}
+          onClose={() => setModal({ type: "none" })}
+        />
+      )}
     </div>
   );
 }
@@ -416,11 +434,11 @@ function KpiCard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-secondary-500">{titulo}</p>
-            <p className="text-2xl font-bold text-secondary-900 mt-1">
+            <p className="text-sm text-muted-foreground">{titulo}</p>
+            <p className="text-2xl font-bold text-foreground mt-1">
               {valor ?? "—"}
             </p>
-            {sub && <p className="text-xs text-secondary-400 mt-1">{sub}</p>}
+            {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
           </div>
           <div className={cn("rounded-lg p-3", cor)}>
             <Icon className="h-5 w-5" />
@@ -440,42 +458,66 @@ function RowActions({
 }) {
   const podeOperar =
     parcela.status !== "pago" && parcela.status !== "cancelado";
-  if (!podeOperar) {
-    return <span className="text-xs text-secondary-400">—</span>;
+  const temCobranca = !!parcela.asaas_cobranca_id;
+
+  if (!podeOperar && !temCobranca) {
+    return <span className="text-xs text-muted-foreground">—</span>;
   }
+
   return (
     <div className="flex items-center justify-end gap-1">
-      <Button size="sm" onClick={() => setModal({ type: "baixar", parcela })}>
-        Marcar como paga
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        title="Cobrar (Pix)"
-        aria-label="Cobrar (Pix)"
-        className="h-11 w-11 p-0"
-        onClick={() => setModal({ type: "cobrar", parcela })}
-      >
-        <QrCode className="h-4 w-4" />
-      </Button>
-      <button
-        type="button"
-        title="Editar"
-        aria-label="Editar"
-        onClick={() => setModal({ type: "editar", parcela })}
-        className="h-11 w-11 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
-      >
-        <Pencil className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        title="Cancelar"
-        aria-label="Cancelar"
-        onClick={() => setModal({ type: "cancelar", parcela })}
-        className="h-11 w-11 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 inline-flex items-center justify-center"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
+      {temCobranca && (
+        <>
+          <Badge variant="info" className="mr-0.5 gap-1">
+            <QrCode className="h-3 w-3" />
+            Cobrança ativa
+          </Badge>
+          <button
+            type="button"
+            title="Visualizar cobrança"
+            aria-label="Visualizar cobrança"
+            onClick={() => setModal({ type: "visualizar", parcela })}
+            className="h-11 w-11 rounded text-muted-foreground hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+        </>
+      )}
+      {podeOperar && (
+        <>
+          <Button size="sm" onClick={() => setModal({ type: "baixar", parcela })}>
+            Marcar como paga
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            title="Cobrar (Pix)"
+            aria-label="Cobrar (Pix)"
+            className="h-11 w-11 p-0"
+            onClick={() => setModal({ type: "cobrar", parcela })}
+          >
+            <QrCode className="h-4 w-4" />
+          </Button>
+          <button
+            type="button"
+            title="Editar"
+            aria-label="Editar"
+            onClick={() => setModal({ type: "editar", parcela })}
+            className="h-11 w-11 rounded text-muted-foreground hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            title="Cancelar"
+            aria-label="Cancelar"
+            onClick={() => setModal({ type: "cancelar", parcela })}
+            className="h-11 w-11 rounded text-muted-foreground hover:text-danger hover:bg-danger-50 inline-flex items-center justify-center"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </>
+      )}
     </div>
   );
 }

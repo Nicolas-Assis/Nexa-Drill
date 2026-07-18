@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { firstOf } from "@/lib/utils";
 import type { LancamentoFormData } from "@/lib/validations";
 import type { Financeiro } from "@/types";
 
@@ -265,9 +266,10 @@ export async function getServicosForSelect(): Promise<{
     };
 
     const servicos = (data ?? []).map((s) => {
-      const clienteArray = s.cliente as { nome: string }[] | null;
-      const clienteNome =
-        clienteArray && clienteArray.length > 0 ? clienteArray[0].nome : null;
+      const cliente = firstOf(
+        s.cliente as { nome: string } | { nome: string }[] | null,
+      );
+      const clienteNome = cliente?.nome ?? null;
       const status = (s.status as string | null) ?? "andamento";
       const statusLabel = statusLabelMap[status] ?? status;
       const endereco = (s.endereco as string | null) ?? null;

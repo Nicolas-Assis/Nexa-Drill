@@ -154,8 +154,8 @@ export default function PerfilPage() {
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Meu Perfil</h1>
-          <p className="text-secondary-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Meu Perfil</h1>
+          <p className="text-muted-foreground mt-1">
             Configure seu perfil público e informações da empresa
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function PerfilPage() {
           <CardContent>
             <div className="flex items-center gap-6">
               <div
-                className="relative h-24 w-24 rounded-xl border-2 border-dashed border-secondary-200 bg-secondary-50 overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                className="relative h-24 w-24 rounded-xl border-2 border-dashed border-border bg-muted overflow-hidden cursor-pointer hover:border-primary transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {logoPreview ? (
@@ -194,11 +194,11 @@ export default function PerfilPage() {
                   />
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center gap-1">
-                    <Camera className="h-6 w-6 text-secondary-400" />
+                    <Camera className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}
                 {uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                  <div className="absolute inset-0 flex items-center justify-center bg-card/80">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   </div>
                 )}
@@ -213,7 +213,7 @@ export default function PerfilPage() {
                 >
                   {uploading ? "Enviando..." : "Alterar logo"}
                 </Button>
-                <p className="text-xs text-secondary-400 mt-1.5">
+                <p className="text-xs text-muted-foreground mt-1.5">
                   PNG, JPG até 2MB. Recomendado: 400×400px.
                 </p>
               </div>
@@ -290,7 +290,7 @@ export default function PerfilPage() {
                 {...register("bio")}
                 error={errors.bio?.message}
               />
-              <p className="text-xs text-secondary-400 mt-1 text-right">
+              <p className="text-xs text-muted-foreground mt-1 text-right">
                 {bioValue.length}/500 caracteres
               </p>
             </div>
@@ -320,7 +320,7 @@ export default function PerfilPage() {
 
             {/* Tipos de serviço */}
             <div>
-              <p className="text-sm font-medium text-secondary-700 mb-2">
+              <p className="text-sm font-medium text-foreground mb-2">
                 Tipos de serviço
               </p>
               <div className="flex flex-wrap gap-2">
@@ -335,7 +335,7 @@ export default function PerfilPage() {
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                         active
                           ? "border-primary bg-primary-50 text-primary"
-                          : "border-secondary-200 bg-white text-secondary-600 hover:border-secondary-300",
+                          : "border-border bg-card text-muted-foreground hover:border-input",
                       )}
                     >
                       {active && <Check className="h-3.5 w-3.5" />}
@@ -348,7 +348,7 @@ export default function PerfilPage() {
 
             {/* Tipos de solo */}
             <div>
-              <p className="text-sm font-medium text-secondary-700 mb-2">
+              <p className="text-sm font-medium text-foreground mb-2">
                 Tipos de solo com experiência
               </p>
               <div className="flex flex-wrap gap-2">
@@ -363,7 +363,7 @@ export default function PerfilPage() {
                         "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                         active
                           ? "border-accent bg-accent-50 text-accent"
-                          : "border-secondary-200 bg-white text-secondary-600 hover:border-secondary-300",
+                          : "border-border bg-card text-muted-foreground hover:border-input",
                       )}
                     >
                       {active && <Check className="h-3.5 w-3.5" />}
@@ -389,8 +389,8 @@ export default function PerfilPage() {
               error={errors.slug?.message}
             />
             {slugValue && !errors.slug && (
-              <div className="flex items-center gap-2 rounded-lg bg-secondary-50 px-3 py-2 text-sm">
-                <span className="text-secondary-400">
+              <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm">
+                <span className="text-muted-foreground">
                   Seu perfil ficará em:
                 </span>
                 <span className="font-medium text-primary break-all">
@@ -398,7 +398,7 @@ export default function PerfilPage() {
                 </span>
               </div>
             )}
-            <p className="text-xs text-secondary-400">
+            <p className="text-xs text-muted-foreground">
               Use apenas letras minúsculas, números e hífens. Ex:
               joao-silva-perfuracoes
             </p>

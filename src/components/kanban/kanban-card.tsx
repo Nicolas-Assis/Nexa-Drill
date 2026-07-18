@@ -29,15 +29,15 @@ export function KanbanCard({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="rounded-lg border border-secondary-200 bg-white p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative group"
+          className="rounded-lg border border-border bg-card p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer relative group"
         >
           <Link href={`/dashboard/orcamentos/${orcamento.id}`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-secondary-500">
+              <span className="text-xs font-medium text-muted-foreground">
                 {orcamento.tipo_servico || "Orçamento"}
               </span>
             </div>
-            <p className="text-sm font-medium text-secondary-900 mb-1">
+            <p className="text-sm font-medium text-foreground mb-1">
               {orcamento.cliente?.nome || "Cliente"}
             </p>
             <p className="text-sm font-semibold text-primary">
@@ -56,9 +56,9 @@ export function KanbanCard({
                 e.stopPropagation();
                 setShowMenu(!showMenu);
               }}
-              className="p-2 rounded opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-secondary-100 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:bg-muted transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <MoreVertical className="h-4 w-4 text-secondary-400" />
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </button>
 
             {showMenu && (
@@ -67,7 +67,7 @@ export function KanbanCard({
                   className="fixed inset-0 z-10"
                   onClick={() => setShowMenu(false)}
                 />
-                <div className="absolute right-0 top-6 z-20 bg-white border border-secondary-200 rounded-lg shadow-lg py-1 min-w-[120px]">
+                <div className="absolute right-0 top-6 z-20 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[120px]">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -76,7 +76,7 @@ export function KanbanCard({
                       setShowMenu(false);
                       onEdit?.(orcamento.id);
                     }}
-                    className="w-full px-3 py-2.5 text-left text-sm text-secondary-700 hover:bg-secondary-50 flex items-center gap-2"
+                    className="w-full px-3 py-2.5 text-left text-sm text-foreground hover:bg-muted flex items-center gap-2"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                     Editar

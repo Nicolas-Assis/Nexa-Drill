@@ -22,6 +22,7 @@ import {
 import { getPerfuradorPublico } from "./actions";
 import { SolicitarForm } from "./solicitar-form";
 import { ShareButtons } from "./share-buttons";
+import { Logo as BrandLogo } from "@/components/brand/logo";
 
 const TIPOS_SERVICO_LABELS: Record<string, string> = {
   perfuracao: "Perfuração de Poços",
@@ -146,14 +147,7 @@ export default async function PerfilPublicoPage({
         {/* ── Navbar ─────────────────────────────────────────────────── */}
         <header className="sticky top-0 z-40 border-b border-secondary-100 bg-white/80 backdrop-blur-lg">
           <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-700 shadow-sm">
-                <Droplets className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-base font-bold text-secondary-900">
-                Nexa<span className="text-primary">Drill</span>
-              </span>
-            </div>
+            <BrandLogo variant="full" surface="light" height={24} />
             <a
               href="#solicitar"
               className="rounded-xl bg-gradient-to-r from-primary to-primary-700 px-5 py-2.5 text-sm font-semibold text-white hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
@@ -627,14 +621,12 @@ export default async function PerfilPublicoPage({
         <footer className="mt-12 border-t border-secondary-100 bg-secondary-900 py-8">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-secondary-400">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-700">
-                <Droplets className="h-4 w-4 text-white" />
-              </div>
+              <BrandLogo variant="mark" height={28} />
               <span>
                 Perfil criado com{" "}
                 <a
                   href={APP_URL}
-                  className="text-primary-300 hover:text-primary-200 hover:underline font-semibold"
+                  className="font-semibold text-primary-300 hover:text-primary-200 hover:underline"
                 >
                   NexaDrill
                 </a>

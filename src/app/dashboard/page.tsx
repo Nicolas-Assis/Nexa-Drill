@@ -20,6 +20,7 @@ import {
 } from "@/components/dashboard/stats-cards";
 import { Badge } from "@/components/ui/badge";
 import { ChartReceitaDespesa } from "@/components/financeiro/chart-receita-despesa";
+import { ChartRecebimentos } from "@/components/charts/chart-recebimentos";
 import {
   getDashboardData,
   type DashboardData,
@@ -77,7 +78,7 @@ function buildStatCards(data: DashboardData): StatCardItem[] {
       title: "Serviços este Mês",
       value: data.servicosMes.toString(),
       icon: Wrench,
-      iconColor: "text-secondary-600 bg-secondary-100",
+      iconColor: "text-muted-foreground bg-muted",
       href: "/dashboard/servicos",
       comparison: {
         percentage: calcPercentChange(
@@ -155,7 +156,7 @@ const FALLBACK_DASHBOARD_DATA: DashboardData = {
 
 function SkeletonBlock({ className }: { className: string }) {
   return (
-    <div className={cn("bg-secondary-200 rounded animate-pulse", className)} />
+    <div className={cn("bg-muted rounded animate-pulse", className)} />
   );
 }
 
@@ -165,7 +166,7 @@ function StatsCardsSkeleton() {
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-xl border border-secondary-200 bg-white p-6"
+          className="rounded-xl border border-border bg-card shadow-card p-6"
         >
           <div className="flex items-center justify-between">
             <div className="space-y-2 flex-1">
@@ -196,7 +197,7 @@ function ChartSkeleton() {
         <div key={i} className="flex-1 flex flex-col justify-end gap-1">
           <div
             className={cn(
-              "w-full bg-secondary-200 rounded-t animate-pulse",
+              "w-full bg-muted rounded-t animate-pulse",
               heightClass,
             )}
           />
@@ -228,7 +229,7 @@ function ListSkeleton({ rows }: { rows: number }) {
 function OrcamentosRecentesList({ items }: { items: OrcamentoRecente[] }) {
   if (items.length === 0) {
     return (
-      <p className="text-sm text-secondary-500 py-4 text-center">
+      <p className="text-sm text-muted-foreground py-4 text-center">
         Nenhum orçamento encontrado.
       </p>
     );
@@ -243,19 +244,19 @@ function OrcamentosRecentesList({ items }: { items: OrcamentoRecente[] }) {
           <Link
             key={o.id}
             href={`/dashboard/orcamentos/${o.id}`}
-            className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary-50 transition-colors"
+            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
           >
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-secondary-900 truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {o.cliente?.nome ?? "—"}
               </p>
-              <p className="text-xs text-secondary-400">
+              <p className="text-xs text-muted-foreground">
                 {formatDate(o.created_at)}
               </p>
             </div>
             <div className="flex items-center gap-2 ml-3 shrink-0">
               {o.valor_final != null && (
-                <span className="text-sm font-medium text-secondary-700">
+                <span className="text-sm font-medium text-foreground">
                   {formatCurrency(o.valor_final)}
                 </span>
               )}
@@ -308,9 +309,9 @@ function PocosNoPrejuizo({
           <Link
             key={item.servico_id}
             href={`/dashboard/servicos/${item.servico_id}`}
-            className="flex items-center justify-between rounded-md bg-white/80 px-3 py-2 hover:bg-white"
+            className="flex items-center justify-between rounded-md bg-card/80 px-3 py-2 hover:bg-card"
           >
-            <span className="text-sm text-secondary-800">
+            <span className="text-sm text-foreground">
               Serviço #{item.servico_id.slice(0, 8).toUpperCase()}
             </span>
             <span className="text-sm font-semibold text-danger">
@@ -348,13 +349,13 @@ function ActionCard({
         "flex items-center gap-3 p-4 rounded-xl border transition-all",
         primary
           ? "border-primary bg-primary text-white hover:bg-primary/90"
-          : "border-secondary-200 bg-white hover:bg-secondary-50 text-secondary-700",
+          : "border-border bg-card shadow-card hover:bg-muted text-foreground",
       )}
     >
       <div
         className={cn(
           "rounded-lg p-2 shrink-0",
-          primary ? "bg-white/20" : iconColor,
+          primary ? "bg-card/20" : iconColor,
         )}
       >
         <Icon className={cn("h-5 w-5", primary ? "text-white" : "")} />
@@ -362,36 +363,6 @@ function ActionCard({
       <span className="text-sm font-medium leading-tight">{label}</span>
       <ArrowRight className="h-4 w-4 ml-auto shrink-0 opacity-60" />
     </Link>
-  );
-}
-
-function RecebimentosBars({
-  data,
-}: {
-  data: { label: string; valor: number }[];
-}) {
-  const max = Math.max(...data.map((d) => d.valor), 1);
-  return (
-    <div className="h-[280px] flex items-end gap-4 px-2 pb-2">
-      {data.map((d, i) => (
-        <div
-          key={i}
-          className="flex-1 flex flex-col items-center justify-end gap-2"
-        >
-          <span className="text-xs font-medium text-secondary-700 h-4">
-            {d.valor > 0 ? formatCurrency(d.valor) : ""}
-          </span>
-          <div
-            className="w-full bg-primary/80 rounded-t transition-all"
-            style={{
-              height: `${(d.valor / max) * 100}%`,
-              minHeight: d.valor > 0 ? "4px" : "0px",
-            }}
-          />
-          <span className="text-xs text-secondary-500">{d.label}</span>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -418,14 +389,14 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Saudação */}
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
           {loading ? (
             <SkeletonBlock className="h-8 w-64 inline-block" />
           ) : (
             getGreeting(dashboardData.nomePerfurador)
           )}
         </h1>
-        <p className="text-secondary-500 mt-1">Visão geral do seu negócio</p>
+        <p className="mt-1 text-muted-foreground">Visão geral do seu negócio</p>
       </div>
 
       {/* Alerta de parcelas atrasadas */}
@@ -455,8 +426,8 @@ export default function DashboardPage() {
       {/* Gráfico + Últimos Orçamentos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Receita vs Despesa — 2/3 */}
-        <div className="lg:col-span-2 rounded-xl border border-secondary-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-secondary-900 mb-4">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">
             Receita vs Despesa
           </h2>
           {loading ? (
@@ -467,9 +438,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Últimos Orçamentos — 1/3 */}
-        <div className="rounded-xl border border-secondary-200 bg-white p-6 flex flex-col">
+        <div className="rounded-xl border border-border bg-card shadow-card p-6 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-secondary-900">
+            <h2 className="text-lg font-semibold text-foreground">
               Últimos Orçamentos
             </h2>
             <Link
@@ -490,13 +461,13 @@ export default function DashboardPage() {
       {/* Cobrança */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* A receber */}
-        <div className="rounded-xl border border-secondary-200 bg-white p-6 flex flex-col justify-between">
+        <div className="rounded-xl border border-border bg-card shadow-card p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="rounded-lg p-2 bg-primary-50 text-primary">
                 <Wallet className="h-5 w-5" />
               </div>
-              <h2 className="text-lg font-semibold text-secondary-900">
+              <h2 className="text-lg font-semibold text-foreground">
                 💰 A receber
               </h2>
             </div>
@@ -511,12 +482,12 @@ export default function DashboardPage() {
             <SkeletonBlock className="h-9 w-40 mt-4" />
           ) : (
             <>
-              <p className="text-3xl font-bold text-secondary-900 mt-4">
+              <p className="text-3xl font-bold text-foreground mt-4">
                 {formatCurrency(dashboardData.aReceberTotal)}
               </p>
-              <p className="text-sm text-secondary-500 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 DSO:{" "}
-                <span className="font-medium text-secondary-700">
+                <span className="font-medium text-foreground">
                   {dashboardData.dso == null
                     ? "—"
                     : `${dashboardData.dso} dias p/ receber`}
@@ -527,25 +498,25 @@ export default function DashboardPage() {
         </div>
 
         {/* Recebimentos previstos - próximos 30 dias */}
-        <div className="lg:col-span-2 rounded-xl border border-secondary-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-secondary-900 mb-4">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">
             Recebimentos previstos — próximos 30 dias
           </h2>
           {loading ? (
             <ChartSkeleton />
           ) : dashboardData.recebimentos30.every((r) => r.valor === 0) ? (
-            <p className="text-sm text-secondary-400 text-center py-12">
+            <p className="text-sm text-muted-foreground text-center py-12">
               Nenhum recebimento previsto para os próximos 30 dias.
             </p>
           ) : (
-            <RecebimentosBars data={dashboardData.recebimentos30} />
+            <ChartRecebimentos data={dashboardData.recebimentos30} />
           )}
         </div>
       </div>
 
       {/* Próximas Ações */}
-      <div className="rounded-xl border border-secondary-200 bg-white p-6">
-        <h2 className="text-lg font-semibold text-secondary-900 mb-4">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
           Próximas Ações
         </h2>
         {loading ? (

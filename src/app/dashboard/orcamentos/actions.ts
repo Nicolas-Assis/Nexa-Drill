@@ -3,15 +3,6 @@
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
 import { orcamentoSchema, type OrcamentoFormData } from "@/lib/validations";
 import type { Orcamento, Cliente, StatusOrcamento } from "@/types";
-import { z } from "zod";
-
-const createLancamentoConclusaoSchema = z.object({
-  servicoId: z.string().min(1, "Serviço é obrigatório para conclusão"),
-  valor: z.number().positive("Valor deve ser maior que zero"),
-  desconto: z.number().min(0, "Desconto não pode ser negativo"),
-  data: z.string().min(1, "Data é obrigatória"),
-  descricao: z.string().min(1, "Descrição é obrigatória"),
-});
 
 export async function getClientesForSelect(): Promise<{
   clientes: Pick<Cliente, "id" | "nome" | "telefone" | "cidade" | "estado">[];
@@ -267,7 +258,9 @@ export async function createServicoDeOrcamento(orcamentoId: string): Promise<{
 
     const { data: orc, error: orcError } = await supabase
       .from("orcamentos")
-      .select("cliente_id, profundidade_estimada_metros, diametro_polegadas")
+      .select(
+        "cliente_id, profundidade_estimada_metros, diametro_polegadas, valor_final, tipo_solo, observacoes",
+      )
       .eq("id", orcamentoId)
       .eq("perfurador_id", perfurador.id)
       .single();
@@ -295,6 +288,10 @@ export async function createServicoDeOrcamento(orcamentoId: string): Promise<{
         cliente_id: orc.cliente_id ?? null,
         profundidade_real_metros: orc.profundidade_estimada_metros ?? null,
         diametro_polegadas: orc.diametro_polegadas ?? null,
+        // Carrega o escopo comercial do orçamento (colunas existentes)
+        valor: orc.valor_final ?? null,
+        tipo_solo_encontrado: orc.tipo_solo ?? null,
+        notas: orc.observacoes ?? null,
         data_inicio: new Date().toISOString().split("T")[0],
         materiais: [],
         fotos: [],
@@ -309,74 +306,24 @@ export async function createServicoDeOrcamento(orcamentoId: string): Promise<{
   }
 }
 
-export async function createLancamentoConclusao(data: {
+// Retorna o id do serviço vinculado a um orçamento (se existir).
+export async function getServicoIdByOrcamento(orcamentoId: string): Promise<{
   servicoId: string | null;
-  valor: number;
-  desconto: number;
-  data: string;
-  descricao: string;
-}): Promise<{ success: boolean; error: string | null }> {
-  try {
-    const { supabase, perfurador } = await getAuthenticatedPerfurador();
-
-    const parsed = createLancamentoConclusaoSchema.safeParse({
-      ...data,
-      servicoId: data.servicoId ?? "",
-    });
-
-    if (!parsed.success) {
-      return { success: false, error: parsed.error.issues[0].message };
-    }
-
-    const { data: servico, error: servicoError } = await supabase
-      .from("servicos")
-      .select("id")
-      .eq("id", parsed.data.servicoId)
-      .eq("perfurador_id", perfurador.id)
-      .single();
-
-    if (servicoError || !servico) {
-      return {
-        success: false,
-        error: servicoError?.message ?? "Serviço não encontrado",
-      };
-    }
-
-    const valorFinal = parsed.data.valor - parsed.data.desconto;
-
-    const { error } = await supabase.from("financeiro").insert({
-      perfurador_id: perfurador.id,
-      servico_id: parsed.data.servicoId,
-      tipo: "receita",
-      categoria: "servico",
-      descricao: parsed.data.descricao,
-      valor: valorFinal,
-      data: parsed.data.data,
-    });
-
-    if (error) return { success: false, error: error.message };
-    return { success: true, error: null };
-  } catch (err) {
-    return { success: false, error: (err as Error).message };
-  }
-}
-
-export async function concluirServico(servicoId: string): Promise<{
-  success: boolean;
   error: string | null;
 }> {
   try {
     const { supabase, perfurador } = await getAuthenticatedPerfurador();
-
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("servicos")
-      .update({ data_conclusao: new Date().toISOString().split("T")[0] })
-      .eq("id", servicoId)
-      .eq("perfurador_id", perfurador.id);
+      .select("id")
+      .eq("orcamento_id", orcamentoId)
+      .eq("perfurador_id", perfurador.id)
+      .maybeSingle();
 
-    if (error) return { success: false, error: error.message };
-    return { success: true, error: null };
+    if (error) return { servicoId: null, error: error.message };
+    return { servicoId: data?.id ?? null, error: null };
   } catch (err) {
-    return { success: false, error: (err as Error).message };
+    return { servicoId: null, error: (err as Error).message };
   }
 }
+

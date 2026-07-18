@@ -78,15 +78,15 @@ export default function NovoOrcamentoPage() {
       <div>
         <Link
           href="/dashboard/orcamentos"
-          className="inline-flex items-center gap-1 text-sm text-secondary-500 hover:text-secondary-700 transition-colors mb-3"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar para orçamentos
         </Link>
-        <h1 className="text-2xl font-bold text-secondary-900">
+        <h1 className="text-2xl font-bold text-foreground">
           Novo Orçamento
         </h1>
-        <p className="text-sm text-secondary-500">
+        <p className="text-sm text-muted-foreground">
           Preencha os dados para criar um orçamento
         </p>
       </div>

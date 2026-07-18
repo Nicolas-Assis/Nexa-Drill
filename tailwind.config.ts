@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,6 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ── Rampas de marca (nomes preservados — 1.198 usos dependem disso) ──
         primary: {
           50: "#EFF6FF",
           100: "#DBEAFE",
@@ -18,8 +20,8 @@ const config: Config = {
           500: "#3B82F6",
           600: "#2563EB",
           700: "#1D4ED8",
-          800: "#1E40AF",
-          900: "#1E3A8A",
+          800: "#12314F",
+          900: "#0B1F33",
           DEFAULT: "#2563EB",
         },
         secondary: {
@@ -87,8 +89,76 @@ const config: Config = {
           900: "#78350F",
           DEFAULT: "#F59E0B",
         },
-        background: "#F8FAFC",
-        foreground: "#0F172A",
+        // Marca navy (broca/wordmark) — para superfícies escuras
+        brand: {
+          navy: "#0B1F33",
+          "navy-700": "#12314F",
+          cream: "#F5F1E8",
+        },
+
+        // ── Tokens semânticos (CSS vars — dark-ready, aceitam /alpha) ──
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        surface: {
+          DEFAULT: "hsl(var(--surface) / <alpha-value>)",
+          2: "hsl(var(--surface-2) / <alpha-value>)",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card) / <alpha-value>)",
+          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover) / <alpha-value>)",
+          foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
+          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
+        },
+        border: "hsl(var(--border) / <alpha-value>)",
+        input: "hsl(var(--input) / <alpha-value>)",
+        ring: "hsl(var(--ring) / <alpha-value>)",
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar) / <alpha-value>)",
+          foreground: "hsl(var(--sidebar-foreground) / <alpha-value>)",
+          muted: "hsl(var(--sidebar-muted) / <alpha-value>)",
+          border: "hsl(var(--sidebar-border) / <alpha-value>)",
+          accent: "hsl(var(--sidebar-accent) / <alpha-value>)",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
+        },
+      },
+      fontFamily: {
+        sans: [
+          "var(--font-inter)",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif",
+        ],
+        display: [
+          "var(--font-display)",
+          "var(--font-inter)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
+      },
+      boxShadow: {
+        xs: "0 1px 2px 0 hsl(222 47% 11% / 0.04)",
+        sm: "0 1px 3px 0 hsl(222 47% 11% / 0.06), 0 1px 2px -1px hsl(222 47% 11% / 0.06)",
+        md: "0 4px 12px -2px hsl(222 47% 11% / 0.08), 0 2px 6px -2px hsl(222 47% 11% / 0.05)",
+        lg: "0 12px 28px -8px hsl(222 47% 11% / 0.12), 0 4px 10px -4px hsl(222 47% 11% / 0.06)",
+        xl: "0 24px 48px -12px hsl(222 47% 11% / 0.18), 0 8px 16px -8px hsl(222 47% 11% / 0.08)",
+        card: "0 1px 3px 0 hsl(222 47% 11% / 0.06), 0 1px 2px -1px hsl(222 47% 11% / 0.05)",
       },
     },
   },

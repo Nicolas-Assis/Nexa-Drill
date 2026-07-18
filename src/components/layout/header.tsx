@@ -1,10 +1,11 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, UserCircle } from "lucide-react";
+import { LogOut, Menu, UserCircle, ShieldCheck } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { usePerfurador } from "@/hooks/use-perfurador";
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Logo } from "@/components/brand/logo";
 import { PAGE_TITLES } from "@/lib/constants";
 
 interface HeaderProps {
@@ -16,7 +17,6 @@ export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
   const { perfurador } = usePerfurador();
 
-  // Dynamic page title resolution - check exact match first, then check for dynamic route patterns
   const pageTitle =
     PAGE_TITLES[pathname] ||
     (pathname.match(/^\/dashboard\/orcamentos\/[^/]+$/)
@@ -45,33 +45,33 @@ export function Header({ onMenuClick }: HeaderProps) {
     : "U";
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-secondary-200 bg-white px-4 lg:px-6">
-      {/* Left: hamburger + page title */}
+    <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
+      {/* Left: hamburger + emblema (mobile) + título */}
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="rounded-lg p-2.5 text-secondary-500 hover:bg-secondary-50 hover:text-secondary-900 lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="Abrir menu"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="text-lg font-semibold text-secondary-900">
-          {pageTitle}
-        </h1>
+        <Logo variant="mark" height={28} className="lg:hidden" />
+        <h1 className="text-lg font-semibold text-foreground">{pageTitle}</h1>
       </div>
 
       {/* Right: avatar */}
       <div className="flex items-center gap-2">
         <DropdownMenu
           trigger={
-            <button className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-secondary-50">
+            <button className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-muted">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                 {initials}
               </div>
               <div className="hidden text-left sm:block">
-                <p className="text-sm font-medium text-secondary-900 leading-tight">
+                <p className="text-sm font-medium leading-tight text-foreground">
                   {perfurador?.nome || "Carregando..."}
                 </p>
-                <p className="text-xs text-secondary-400 leading-tight">
+                <p className="text-xs leading-tight text-muted-foreground">
                   {perfurador?.nome_empresa || ""}
                 </p>
               </div>
@@ -79,10 +79,14 @@ export function Header({ onMenuClick }: HeaderProps) {
           }
         >
           <DropdownMenuItem onClick={() => router.push("/dashboard/perfil")}>
-            <UserCircle className="mr-2 h-4 w-4 text-secondary-400" />
+            <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" />
             Meu Perfil
           </DropdownMenuItem>
-          <div className="my-1 border-t border-secondary-100" />
+          <DropdownMenuItem onClick={() => router.push("/dashboard/termos")}>
+            <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
+            Termos e Privacidade
+          </DropdownMenuItem>
+          <div className="my-1 border-t border-border" />
           <DropdownMenuItem
             onClick={handleLogout}
             className="text-danger hover:bg-danger-50"

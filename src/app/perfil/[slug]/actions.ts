@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { firstOf } from "@/lib/utils";
 import type { Perfurador, Servico } from "@/types";
 
 // Rate limit do formulário público: máx 5 requisições por hora por IP
@@ -77,9 +78,13 @@ export async function getPerfuradorPublico(slug: string): Promise<{
       .limit(12);
 
     const publicServicos: PublicServico[] = (servicos ?? []).map((s) => {
-      const clienteArray = s.cliente as { cidade: string | null }[] | null;
-      const clienteCidade =
-        clienteArray && clienteArray.length > 0 ? clienteArray[0].cidade : null;
+      const cliente = firstOf(
+        s.cliente as
+          | { cidade: string | null }
+          | { cidade: string | null }[]
+          | null,
+      );
+      const clienteCidade = cliente?.cidade ?? null;
       return {
         id: s.id as string,
         endereco: s.endereco as string | null,

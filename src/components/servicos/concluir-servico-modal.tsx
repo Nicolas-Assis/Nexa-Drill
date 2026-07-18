@@ -267,7 +267,7 @@ export function ConcluirServicoModal({
                 "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                 modo === m.value
                   ? "border-primary bg-primary text-white"
-                  : "border-secondary-300 bg-white text-secondary-700 hover:bg-secondary-50",
+                  : "border-input bg-card text-foreground hover:bg-muted",
               )}
             >
               {m.label}
@@ -285,7 +285,7 @@ export function ConcluirServicoModal({
         {/* ── Modo à vista ─────────────────────────────────────────── */}
         {modo === "a_vista" && (
           <div className="space-y-4">
-            <p className="text-sm text-secondary-600">
+            <p className="text-sm text-muted-foreground">
               Recebido de uma vez. Cria a receita no financeiro e uma parcela já
               quitada.
             </p>
@@ -320,7 +320,7 @@ export function ConcluirServicoModal({
               value={descricaoVista}
               onChange={(e) => setDescricaoVista(e.target.value)}
             />
-            <div className="border-t border-secondary-100 pt-3 text-sm text-secondary-500">
+            <div className="border-t border-border pt-3 text-sm text-muted-foreground">
               Valor líquido:{" "}
               <span className="font-semibold text-success">
                 {formatCurrency(valorLiquidoVista)}
@@ -332,7 +332,7 @@ export function ConcluirServicoModal({
         {/* ── Modos parcelado / com sinal ──────────────────────────── */}
         {modo !== "a_vista" && (
           <div className="space-y-4">
-            <p className="text-sm text-secondary-600">
+            <p className="text-sm text-muted-foreground">
               {comSinal
                 ? "A 1ª parcela é o sinal (recebido agora); as demais ficam a receber."
                 : "Nenhuma receita entra agora — as parcelas ficam a receber."}
@@ -348,13 +348,13 @@ export function ConcluirServicoModal({
             />
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-secondary-500">Dividir igual:</span>
+              <span className="text-sm text-muted-foreground">Dividir igual:</span>
               {[2, 3, 4, 5, 6].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => aplicarIguais(n)}
-                  className="h-8 w-8 rounded-md border border-secondary-300 text-sm hover:bg-secondary-50"
+                  className="h-8 w-8 rounded-md border border-input text-sm hover:bg-muted"
                 >
                   {n}
                 </button>
@@ -362,7 +362,7 @@ export function ConcluirServicoModal({
               <button
                 type="button"
                 onClick={adicionarParcela}
-                className="inline-flex items-center gap-1 rounded-md border border-secondary-300 px-2 h-8 text-sm hover:bg-secondary-50"
+                className="inline-flex items-center gap-1 rounded-md border border-input px-2 h-8 text-sm hover:bg-muted"
               >
                 <Plus className="h-3.5 w-3.5" /> Parcela
               </button>
@@ -372,17 +372,17 @@ export function ConcluirServicoModal({
               {parcelas.map((p, i) => (
                 <div
                   key={i}
-                  className="rounded-lg border border-secondary-200 p-3 space-y-2"
+                  className="rounded-lg border border-border p-3 space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-secondary-500">
+                    <span className="text-xs font-medium text-muted-foreground">
                       {comSinal && i === 0 ? "Sinal (recebido agora)" : `Parcela ${i + 1}`}
                     </span>
                     {parcelas.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removerParcela(i)}
-                        className="text-secondary-400 hover:text-danger"
+                        className="text-muted-foreground hover:text-danger"
                         title="Remover parcela"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -433,7 +433,7 @@ export function ConcluirServicoModal({
 
             <div
               className={cn(
-                "border-t border-secondary-100 pt-3 text-sm flex items-center justify-between",
+                "border-t border-border pt-3 text-sm flex items-center justify-between",
                 somaBate ? "text-success" : "text-danger",
               )}
             >
@@ -443,7 +443,7 @@ export function ConcluirServicoModal({
                   {formatCurrency(somaParcelas)}
                 </span>
               </span>
-              <span className="text-secondary-500">
+              <span className="text-muted-foreground">
                 Total: {formatCurrency(totalServico)}
               </span>
             </div>

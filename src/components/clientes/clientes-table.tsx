@@ -40,7 +40,7 @@ export function ClientesTable({ clientes, onEdit, onDelete }: ClientesTableProps
             <TableCell>
               <Link
                 href={`/dashboard/clientes/${cliente.id}`}
-                className="font-medium text-secondary-900 hover:text-primary transition-colors"
+                className="font-medium text-foreground hover:text-primary transition-colors"
               >
                 {cliente.nome}
               </Link>
@@ -48,7 +48,7 @@ export function ClientesTable({ clientes, onEdit, onDelete }: ClientesTableProps
             <TableCell>
               <a
                 href={`tel:${cliente.telefone}`}
-                className="inline-flex items-center gap-1.5 text-secondary-600 hover:text-primary transition-colors"
+                className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors"
               >
                 <Phone className="h-3.5 w-3.5" />
                 {cliente.telefone}
@@ -56,11 +56,11 @@ export function ClientesTable({ clientes, onEdit, onDelete }: ClientesTableProps
             </TableCell>
             <TableCell>
               {cliente.cidade || cliente.estado ? (
-                <span className="text-secondary-600">
+                <span className="text-muted-foreground">
                   {[cliente.cidade, cliente.estado].filter(Boolean).join(" / ")}
                 </span>
               ) : (
-                <span className="text-secondary-400">—</span>
+                <span className="text-muted-foreground">—</span>
               )}
             </TableCell>
             <TableCell className="text-center">
@@ -68,19 +68,19 @@ export function ClientesTable({ clientes, onEdit, onDelete }: ClientesTableProps
                 {cliente._orcamentosCount}
               </Badge>
             </TableCell>
-            <TableCell className="text-secondary-500 text-sm">
+            <TableCell className="text-muted-foreground text-sm">
               {formatDate(cliente.created_at)}
             </TableCell>
             <TableCell>
               <DropdownMenu
                 trigger={
-                  <button className="rounded-lg p-1.5 text-secondary-400 hover:bg-secondary-50 hover:text-secondary-600">
+                  <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-muted-foreground">
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
                 }
               >
                 <DropdownMenuItem onClick={() => onEdit(cliente)}>
-                  <Pencil className="mr-2 h-4 w-4 text-secondary-400" />
+                  <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuItem

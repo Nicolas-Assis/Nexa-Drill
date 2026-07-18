@@ -160,7 +160,7 @@ export function OrcamentoForm({
               )}
             </div>
             {selectedCliente && (
-              <div className="rounded-lg bg-secondary-50 px-3 py-2 text-sm text-secondary-600">
+              <div className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
                 <span className="font-medium">{selectedCliente.telefone}</span>
                 {selectedCliente.cidade && (
                   <span> — {selectedCliente.cidade}{selectedCliente.estado ? `/${selectedCliente.estado}` : ""}</span>
@@ -236,15 +236,15 @@ export function OrcamentoForm({
                 return (
                   <div
                     key={field.id}
-                    className="rounded-lg border border-secondary-200 bg-secondary-50/50 p-3 space-y-3"
+                    className="rounded-lg border border-border bg-muted/50 p-3 space-y-3"
                   >
                     <div className="flex items-start justify-between">
-                      <span className="text-xs font-medium text-secondary-400">Item {index + 1}</span>
+                      <span className="text-xs font-medium text-muted-foreground">Item {index + 1}</span>
                       <button
                         type="button"
                         title="Remover item"
                         onClick={() => remove(index)}
-                        className="rounded-lg p-1 text-secondary-400 hover:bg-danger-50 hover:text-danger transition-colors"
+                        className="rounded-lg p-1 text-muted-foreground hover:bg-danger-50 hover:text-danger transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -274,8 +274,8 @@ export function OrcamentoForm({
                         {...register(`itens.${index}.valor_unit`, { valueAsNumber: true })}
                       />
                       <div className="space-y-1">
-                        <label className="block text-sm font-medium text-secondary-700">Subtotal</label>
-                        <div className="flex h-10 items-center rounded-lg bg-secondary-100 px-3 text-sm font-semibold text-secondary-900">
+                        <label className="block text-sm font-medium text-foreground">Subtotal</label>
+                        <div className="flex h-10 items-center rounded-lg bg-muted px-3 text-sm font-semibold text-foreground">
                           {formatCurrency(itemSubtotal)}
                         </div>
                       </div>
@@ -300,23 +300,23 @@ export function OrcamentoForm({
             </Button>
 
             {/* Totals footer */}
-            <div className="border-t border-secondary-200 pt-4 space-y-2">
+            <div className="border-t border-border pt-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-secondary-500">Subtotal</span>
-                <span className="font-medium text-secondary-900">{formatCurrency(subtotal)}</span>
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium text-foreground">{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-secondary-500">Desconto (R$)</span>
+                <span className="text-sm text-muted-foreground">Desconto (R$)</span>
                 <input
                   type="number"
                   step="0.01"
                   min={0}
-                  className="w-32 h-9 rounded-lg border border-secondary-300 bg-white px-3 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-32 h-9 rounded-lg border border-input bg-card px-3 text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary-500"
                   {...register("desconto", { valueAsNumber: true })}
                 />
               </div>
               <div className="flex items-center justify-between border-t border-primary-200 pt-3">
-                <span className="text-lg font-bold text-secondary-900">VALOR FINAL</span>
+                <span className="text-lg font-bold text-foreground">VALOR FINAL</span>
                 <span className="text-2xl font-bold text-primary">{formatCurrency(valorFinal)}</span>
               </div>
             </div>

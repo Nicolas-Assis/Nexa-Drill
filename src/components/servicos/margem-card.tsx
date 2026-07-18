@@ -246,7 +246,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
           <CardTitle>Resultado do Poço</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-secondary-500">
+          <p className="text-sm text-muted-foreground">
             Não foi possível carregar os dados de margem.
           </p>
         </CardContent>
@@ -265,15 +265,15 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-secondary-500">Receita prevista</span>
-            <span className="font-semibold text-secondary-900">
+            <span className="text-muted-foreground">Receita prevista</span>
+            <span className="font-semibold text-foreground">
               {formatCurrency(previsto || margem.receita)}
             </span>
           </div>
 
           {/* Recebido / A receber */}
           {previsto > 0 && (
-            <div className="rounded-lg border border-secondary-200 p-3 space-y-2">
+            <div className="rounded-lg border border-border p-3 space-y-2">
               {aReceber <= 0 ? (
                 <p className="text-sm font-medium text-success">
                   ✓ Totalmente recebido
@@ -284,18 +284,18 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                     <span className="text-success font-medium">
                       {formatCurrency(recebido)} recebido
                     </span>
-                    <span className="text-secondary-500">
+                    <span className="text-muted-foreground">
                       {formatCurrency(aReceber)} a receber
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-secondary-100 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                     <div
                       className="h-full bg-success rounded-full transition-all"
                       style={{ width: `${pctRecebido}%` }}
                     />
                   </div>
                   {previsaoUltima && (
-                    <p className="text-xs text-secondary-400">
+                    <p className="text-xs text-muted-foreground">
                       Previsão de receber tudo: {formatDate(previsaoUltima)}
                     </p>
                   )}
@@ -305,9 +305,9 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
           )}
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-secondary-500">Custo</span>
+            <span className="text-muted-foreground">Custo</span>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-secondary-900">
+              <span className="font-semibold text-foreground">
                 {formatCurrency(custo)}
               </span>
               <button
@@ -326,12 +326,12 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
           </div>
 
           {/* Margem com toggle previsto x realizado */}
-          <div className="border-t border-secondary-200 pt-4">
+          <div className="border-t border-border pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-xs text-secondary-500">MARGEM</p>
-                  <div className="inline-flex rounded-md border border-secondary-200 overflow-hidden">
+                  <p className="text-xs text-muted-foreground">MARGEM</p>
+                  <div className="inline-flex rounded-md border border-border overflow-hidden">
                     {(["previsto", "recebido"] as const).map((v) => (
                       <button
                         key={v}
@@ -341,7 +341,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                           "px-2 py-0.5 text-[11px] transition-colors",
                           visaoMargem === v
                             ? "bg-primary text-white"
-                            : "bg-white text-secondary-500 hover:bg-secondary-50",
+                            : "bg-card text-muted-foreground hover:bg-muted",
                         )}
                       >
                         {v === "previsto" ? "Prevista" : "Realizada"}
@@ -349,9 +349,9 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                     ))}
                   </div>
                 </div>
-                <p className="text-xl font-bold text-secondary-900">
+                <p className="text-xl font-bold text-foreground">
                   {formatCurrency(margemMostrada)}
-                  <span className="ml-2 text-base font-semibold text-secondary-600">
+                  <span className="ml-2 text-base font-semibold text-muted-foreground">
                     {pctMargem == null ? "—" : `${pctMargem.toFixed(2)}%`}
                   </span>
                 </p>
@@ -361,20 +361,20 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-lg border border-secondary-200 p-3">
-              <p className="text-xs text-secondary-500">Custo por metro</p>
-              <p className="font-semibold text-secondary-900">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Custo por metro</p>
+              <p className="font-semibold text-foreground">
                 {margem.custo_por_metro == null
                   ? "—"
                   : `${formatCurrency(margem.custo_por_metro)}/m`}
               </p>
-              <p className="text-xs text-secondary-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 em {profundidadeReal ?? margem.profundidade ?? 0}m
               </p>
             </div>
-            <div className="rounded-lg border border-secondary-200 p-3">
-              <p className="text-xs text-secondary-500">Margem por metro</p>
-              <p className="font-semibold text-secondary-900">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Margem por metro</p>
+              <p className="font-semibold text-foreground">
                 {margem.margem_por_metro == null
                   ? "—"
                   : `${formatCurrency(margem.margem_por_metro)}/m`}
@@ -390,16 +390,16 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
           </Button>
 
           {expanded && (
-            <div className="border-t border-secondary-200 pt-4 transition-all">
+            <div className="border-t border-border pt-4 transition-all">
               {despesas.length === 0 ? (
-                <p className="text-sm text-secondary-500">
+                <p className="text-sm text-muted-foreground">
                   Sem custos registrados.
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-secondary-500 border-b border-secondary-200">
+                      <tr className="text-left text-muted-foreground border-b border-border">
                         <th className="py-2 pr-2">Data</th>
                         <th className="py-2 pr-2">Categoria</th>
                         <th className="py-2 pr-2">Descrição</th>
@@ -411,7 +411,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                       {despesas.map((item) => (
                         <tr
                           key={item.id}
-                          className="border-b border-secondary-100"
+                          className="border-b border-border"
                         >
                           <td className="py-2 pr-2">{formatDate(item.data)}</td>
                           <td className="py-2 pr-2">
@@ -428,7 +428,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                           <td className="py-2 text-right">
                             <button
                               type="button"
-                              className="inline-flex items-center gap-1 text-secondary-500 hover:text-danger"
+                              className="inline-flex items-center gap-1 text-muted-foreground hover:text-danger"
                               onClick={() => handleDesvincular(item.id)}
                             >
                               <Unlink className="h-3.5 w-3.5" />
@@ -445,12 +445,12 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
           )}
 
           {/* ── Seção de parcelas ─────────────────────────────────────── */}
-          <div className="border-t border-secondary-200 pt-4 space-y-3">
+          <div className="border-t border-border pt-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-secondary-800">
+              <p className="text-sm font-semibold text-foreground">
                 Parcelas
                 {temParcelas ? (
-                  <span className="ml-1 text-secondary-400 font-normal">
+                  <span className="ml-1 text-muted-foreground font-normal">
                     ({parcelas.length})
                   </span>
                 ) : null}
@@ -465,7 +465,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
             </div>
 
             {!temParcelas ? (
-              <p className="text-sm text-secondary-500">
+              <p className="text-sm text-muted-foreground">
                 Nenhuma parcela. Conclua o serviço parcelado ou adicione uma
                 cobrança avulsa.
               </p>
@@ -477,13 +477,13 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-secondary-100 p-2.5"
+                      className="flex items-center justify-between gap-2 rounded-lg border border-border p-2.5"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm text-secondary-900 truncate">
+                        <p className="text-sm text-foreground truncate">
                           {p.descricao ?? "Parcela"}
                         </p>
-                        <p className="text-xs text-secondary-500">
+                        <p className="text-xs text-muted-foreground">
                           vence {formatDate(p.vencimento)} ·{" "}
                           {formatCurrency(p.valor)}
                         </p>
@@ -509,7 +509,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                               onClick={() =>
                                 setParcelaModal({ type: "cobrar", parcela: p })
                               }
-                              className="h-11 w-11 rounded text-secondary-500 hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
+                              className="h-11 w-11 rounded text-muted-foreground hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
                             >
                               <QrCode className="h-4 w-4" />
                             </button>
@@ -520,7 +520,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                               onClick={() =>
                                 setParcelaModal({ type: "editar", parcela: p })
                               }
-                              className="h-11 w-11 rounded text-secondary-400 hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
+                              className="h-11 w-11 rounded text-muted-foreground hover:text-primary hover:bg-primary-50 inline-flex items-center justify-center"
                             >
                               <Pencil className="h-4 w-4" />
                             </button>
@@ -534,7 +534,7 @@ export function MargemCard({ servicoId, profundidadeReal }: MargemCardProps) {
                                   parcela: p,
                                 })
                               }
-                              className="h-11 w-11 rounded text-secondary-400 hover:text-danger hover:bg-danger-50 inline-flex items-center justify-center"
+                              className="h-11 w-11 rounded text-muted-foreground hover:text-danger hover:bg-danger-50 inline-flex items-center justify-center"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

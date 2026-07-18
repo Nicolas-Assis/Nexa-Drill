@@ -6,21 +6,21 @@ const Table = forwardRef<HTMLTableElement, HTMLAttributes<HTMLTableElement>>(
     <div className="w-full overflow-auto">
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
-  )
+  ),
 );
 Table.displayName = "Table";
 
 const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn("border-b border-secondary-200", className)} {...props} />
-  )
+    <thead ref={ref} className={cn("border-b border-border", className)} {...props} />
+  ),
 );
 TableHeader.displayName = "TableHeader";
 
 const TableBody = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
     <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />
-  )
+  ),
 );
 TableBody.displayName = "TableBody";
 
@@ -28,10 +28,13 @@ const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTableRowElem
   ({ className, ...props }, ref) => (
     <tr
       ref={ref}
-      className={cn("border-b border-secondary-100 transition-colors hover:bg-secondary-50", className)}
+      className={cn(
+        "border-b border-border/70 transition-colors hover:bg-muted/50",
+        className,
+      )}
       {...props}
     />
-  )
+  ),
 );
 TableRow.displayName = "TableRow";
 
@@ -40,19 +43,19 @@ const TableHead = forwardRef<HTMLTableCellElement, ThHTMLAttributes<HTMLTableCel
     <th
       ref={ref}
       className={cn(
-        "h-12 px-4 text-left align-middle font-medium text-secondary-500",
-        className
+        "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 TableHead.displayName = "TableHead";
 
 const TableCell = forwardRef<HTMLTableCellElement, TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("p-4 align-middle text-secondary-700", className)} {...props} />
-  )
+    <td ref={ref} className={cn("p-4 align-middle text-foreground", className)} {...props} />
+  ),
 );
 TableCell.displayName = "TableCell";
 

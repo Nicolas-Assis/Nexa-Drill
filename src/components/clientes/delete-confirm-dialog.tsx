@@ -27,9 +27,9 @@ export function DeleteConfirmDialog({
           Excluir Cliente
         </DialogTitle>
       </DialogHeader>
-      <p className="text-sm text-secondary-600 mt-2">
+      <p className="text-sm text-muted-foreground mt-2">
         Tem certeza que deseja excluir o cliente{" "}
-        <span className="font-semibold text-secondary-900">{clienteNome}</span>?
+        <span className="font-semibold text-foreground">{clienteNome}</span>?
         Esta ação não pode ser desfeita.
       </p>
       <div className="flex justify-end gap-3 mt-6">

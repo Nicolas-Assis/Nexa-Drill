@@ -88,10 +88,10 @@ export function OrcamentoPublic({
             <Droplets className="h-6 w-6 text-white" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-secondary-900">
+        <h1 className="text-2xl font-bold text-foreground">
           {perfurador.nome_empresa || perfurador.nome}
         </h1>
-        <p className="text-secondary-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           {perfurador.telefone} | {perfurador.email}
         </p>
       </div>
@@ -131,7 +131,7 @@ export function OrcamentoPublic({
             <CardTitle>
               Orçamento #{orcamento.id.slice(0, 8).toUpperCase()}
             </CardTitle>
-            <span className="text-sm text-secondary-400">
+            <span className="text-sm text-muted-foreground">
               Emitido em {formatDate(orcamento.created_at)}
             </span>
           </div>
@@ -141,19 +141,19 @@ export function OrcamentoPublic({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             {orcamento.cliente && (
               <div>
-                <p className="text-secondary-400 mb-1">Cliente</p>
-                <p className="font-medium text-secondary-900">
+                <p className="text-muted-foreground mb-1">Cliente</p>
+                <p className="font-medium text-foreground">
                   {orcamento.cliente.nome}
                 </p>
-                <p className="text-secondary-500">
+                <p className="text-muted-foreground">
                   {orcamento.cliente.telefone}
                 </p>
               </div>
             )}
             {orcamento.tipo_servico && (
               <div>
-                <p className="text-secondary-400 mb-1">Tipo de Serviço</p>
-                <p className="font-medium text-secondary-900">
+                <p className="text-muted-foreground mb-1">Tipo de Serviço</p>
+                <p className="font-medium text-foreground">
                   {SERVICO_LABELS[orcamento.tipo_servico] ||
                     orcamento.tipo_servico}
                 </p>
@@ -161,16 +161,16 @@ export function OrcamentoPublic({
             )}
             {orcamento.profundidade_estimada_metros && (
               <div>
-                <p className="text-secondary-400 mb-1">Profundidade Estimada</p>
-                <p className="font-medium text-secondary-900">
+                <p className="text-muted-foreground mb-1">Profundidade Estimada</p>
+                <p className="font-medium text-foreground">
                   {orcamento.profundidade_estimada_metros}m
                 </p>
               </div>
             )}
             {orcamento.diametro_polegadas && (
               <div>
-                <p className="text-secondary-400 mb-1">Diâmetro</p>
-                <p className="font-medium text-secondary-900">
+                <p className="text-muted-foreground mb-1">Diâmetro</p>
+                <p className="font-medium text-foreground">
                   {orcamento.diametro_polegadas}&quot;
                 </p>
               </div>
@@ -178,22 +178,22 @@ export function OrcamentoPublic({
           </div>
 
           {/* Items */}
-          <div className="border-t border-secondary-200 pt-4">
-            <h3 className="font-semibold text-secondary-900 mb-3">Itens</h3>
+          <div className="border-t border-border pt-4">
+            <h3 className="font-semibold text-foreground mb-3">Itens</h3>
             <div className="space-y-2">
               {itens.map((item, i) => (
                 <div
                   key={i}
-                  className="flex justify-between text-sm py-1.5 border-b border-secondary-100 last:border-0"
+                  className="flex justify-between text-sm py-1.5 border-b border-border last:border-0"
                 >
                   <div>
-                    <span className="text-secondary-900">{item.descricao}</span>
-                    <span className="text-secondary-400 ml-2">
+                    <span className="text-foreground">{item.descricao}</span>
+                    <span className="text-muted-foreground ml-2">
                       ({item.qtd} {item.unidade} ×{" "}
                       {formatCurrency(item.valor_unit)})
                     </span>
                   </div>
-                  <span className="font-medium text-secondary-900 shrink-0 ml-4">
+                  <span className="font-medium text-foreground shrink-0 ml-4">
                     {formatCurrency(item.qtd * item.valor_unit)}
                   </span>
                 </div>
@@ -203,21 +203,21 @@ export function OrcamentoPublic({
             {/* Totals */}
             <div className="mt-4 space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-secondary-500">Subtotal</span>
-                <span className="text-secondary-700">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-foreground">
                   {formatCurrency(subtotal)}
                 </span>
               </div>
               {desconto > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-secondary-500">Desconto</span>
+                  <span className="text-muted-foreground">Desconto</span>
                   <span className="text-danger">
                     - {formatCurrency(desconto)}
                   </span>
                 </div>
               )}
-              <div className="flex justify-between border-t border-secondary-200 pt-3 mt-2">
-                <span className="text-xl font-bold text-secondary-900">
+              <div className="flex justify-between border-t border-border pt-3 mt-2">
+                <span className="text-xl font-bold text-foreground">
                   Total
                 </span>
                 <span className="text-xl font-bold text-primary">
@@ -229,24 +229,24 @@ export function OrcamentoPublic({
 
           {/* Conditions */}
           {(orcamento.forma_pagamento || orcamento.prazo_execucao_dias) && (
-            <div className="border-t border-secondary-200 pt-4">
-              <h3 className="font-semibold text-secondary-900 mb-2">
+            <div className="border-t border-border pt-4">
+              <h3 className="font-semibold text-foreground mb-2">
                 Condições
               </h3>
               {orcamento.forma_pagamento && (
-                <p className="text-sm text-secondary-600 mb-1">
-                  <span className="text-secondary-400">Pagamento:</span>{" "}
+                <p className="text-sm text-muted-foreground mb-1">
+                  <span className="text-muted-foreground">Pagamento:</span>{" "}
                   {orcamento.forma_pagamento}
                 </p>
               )}
               {orcamento.prazo_execucao_dias && (
-                <p className="text-sm text-secondary-600 mb-1">
-                  <span className="text-secondary-400">Prazo:</span>{" "}
+                <p className="text-sm text-muted-foreground mb-1">
+                  <span className="text-muted-foreground">Prazo:</span>{" "}
                   {orcamento.prazo_execucao_dias} dias úteis
                 </p>
               )}
-              <p className="text-sm text-secondary-600">
-                <span className="text-secondary-400">Validade:</span> até{" "}
+              <p className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground">Validade:</span> até{" "}
                 {formatDate(expiresDate.toISOString())}
               </p>
             </div>
@@ -254,11 +254,11 @@ export function OrcamentoPublic({
 
           {/* Observations */}
           {orcamento.observacoes && (
-            <div className="border-t border-secondary-200 pt-4">
-              <h3 className="font-semibold text-secondary-900 mb-2">
+            <div className="border-t border-border pt-4">
+              <h3 className="font-semibold text-foreground mb-2">
                 Observações
               </h3>
-              <p className="text-sm text-secondary-600 whitespace-pre-wrap">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                 {orcamento.observacoes}
               </p>
             </div>
@@ -303,7 +303,7 @@ export function OrcamentoPublic({
             )}
 
             {showAlteracao && (
-              <div className="space-y-3 border-t border-secondary-200 pt-4">
+              <div className="space-y-3 border-t border-border pt-4">
                 <Textarea
                   label="Descreva a alteração desejada"
                   placeholder="Ex: Gostaria de alterar a profundidade para 150m..."
@@ -329,7 +329,7 @@ export function OrcamentoPublic({
       )}
 
       {/* Footer */}
-      <p className="text-center text-xs text-secondary-400 pb-4">
+      <p className="text-center text-xs text-muted-foreground pb-4">
         Orçamento gerado pelo NexaDrill
       </p>
     </div>

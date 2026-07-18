@@ -20,10 +20,10 @@ export function KanbanColumn({
   onDelete,
 }: KanbanColumnProps) {
   return (
-    <div className="flex w-[80vw] sm:w-72 flex-shrink-0 flex-col rounded-xl bg-secondary-50 p-3 snap-center">
+    <div className="flex w-[80vw] sm:w-72 flex-shrink-0 flex-col rounded-xl bg-muted p-3 snap-center">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-secondary-700">{title}</h3>
-        <span className="rounded-full bg-secondary-200 px-2 py-0.5 text-xs font-medium text-secondary-600">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {orcamentos.length}
         </span>
       </div>

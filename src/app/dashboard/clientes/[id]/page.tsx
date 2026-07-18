@@ -207,13 +207,13 @@ export default function ClienteDetalhePage({
       <div>
         <Link
           href="/dashboard/clientes"
-          className="inline-flex items-center gap-1 text-sm text-secondary-500 hover:text-secondary-700 transition-colors mb-3"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar para clientes
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-2xl font-bold text-secondary-900">
+          <h1 className="text-2xl font-bold text-foreground">
             {cliente.nome}
           </h1>
           <div className="flex flex-wrap gap-2">
@@ -250,10 +250,10 @@ export default function ClienteDetalhePage({
                 <Phone className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-secondary-400">Telefone</p>
+                <p className="text-xs text-muted-foreground">Telefone</p>
                 <a
                   href={`tel:${cliente.telefone}`}
-                  className="text-sm font-medium text-secondary-900 hover:text-primary transition-colors"
+                  className="text-sm font-medium text-foreground hover:text-primary transition-colors"
                 >
                   {cliente.telefone}
                 </a>
@@ -269,8 +269,8 @@ export default function ClienteDetalhePage({
                 <Mail className="h-5 w-5 text-accent" />
               </div>
               <div>
-                <p className="text-xs text-secondary-400">E-mail</p>
-                <p className="text-sm font-medium text-secondary-900">
+                <p className="text-xs text-muted-foreground">E-mail</p>
+                <p className="text-sm font-medium text-foreground">
                   {cliente.email || "Não informado"}
                 </p>
               </div>
@@ -285,12 +285,12 @@ export default function ClienteDetalhePage({
                 <MapPin className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-xs text-secondary-400">Localização</p>
-                <p className="text-sm font-medium text-secondary-900">
+                <p className="text-xs text-muted-foreground">Localização</p>
+                <p className="text-sm font-medium text-foreground">
                   {location || "Não informado"}
                 </p>
                 {cliente.endereco && (
-                  <p className="text-xs text-secondary-400 mt-0.5">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {cliente.endereco}
                   </p>
                 )}
@@ -310,8 +310,8 @@ export default function ClienteDetalhePage({
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-secondary-400">Orçamentos</p>
-                  <p className="text-lg font-bold text-secondary-900">
+                  <p className="text-xs text-muted-foreground">Orçamentos</p>
+                  <p className="text-lg font-bold text-foreground">
                     {orcamentosCount}
                   </p>
                 </div>
@@ -328,8 +328,8 @@ export default function ClienteDetalhePage({
                   <Wrench className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-xs text-secondary-400">Serviços</p>
-                  <p className="text-lg font-bold text-secondary-900">
+                  <p className="text-xs text-muted-foreground">Serviços</p>
+                  <p className="text-lg font-bold text-foreground">
                     {servicosCount}
                   </p>
                 </div>
@@ -346,8 +346,8 @@ export default function ClienteDetalhePage({
                   <DollarSign className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-xs text-secondary-400">Valor Recebido</p>
-                  <p className="text-lg font-bold text-secondary-900">
+                  <p className="text-xs text-muted-foreground">Valor Recebido</p>
+                  <p className="text-lg font-bold text-foreground">
                     {formatCurrency(valorTotalRecebido)}
                   </p>
                 </div>
@@ -364,8 +364,8 @@ export default function ClienteDetalhePage({
                   <TrendingUp className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-xs text-secondary-400">Qualidade</p>
-                  <p className="text-sm font-medium text-secondary-500">
+                  <p className="text-xs text-muted-foreground">Qualidade</p>
+                  <p className="text-sm font-medium text-muted-foreground">
                     {taxaSucesso}% sucesso
                   </p>
                 </div>
@@ -386,7 +386,7 @@ export default function ClienteDetalhePage({
         </CardHeader>
         <CardContent>
           {orcamentos.length === 0 ? (
-            <p className="text-sm text-secondary-500 text-center py-4">
+            <p className="text-sm text-muted-foreground text-center py-4">
               Nenhum orçamento encontrado
             </p>
           ) : (
@@ -394,21 +394,21 @@ export default function ClienteDetalhePage({
               {orcamentos.map((orc) => (
                 <div
                   key={orc.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-secondary-200 hover:bg-secondary-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-secondary-900">
+                      <span className="text-sm font-medium text-foreground">
                         {orc.tipo_servico || "Sem tipo"}
                       </span>
-                      <span className="text-xs text-secondary-500 flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {formatDate(orc.created_at, "dd/MM/yyyy")}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-secondary-900">
+                    <span className="text-sm font-semibold text-foreground">
                       {orc.valor_final ? formatCurrency(orc.valor_final) : "-"}
                     </span>
                     {getStatusBadgeOrcamento(orc.status)}
@@ -435,7 +435,7 @@ export default function ClienteDetalhePage({
         </CardHeader>
         <CardContent>
           {servicos.length === 0 ? (
-            <p className="text-sm text-secondary-500 text-center py-4">
+            <p className="text-sm text-muted-foreground text-center py-4">
               Nenhum serviço encontrado
             </p>
           ) : (
@@ -443,14 +443,14 @@ export default function ClienteDetalhePage({
               {servicos.map((srv) => (
                 <div
                   key={srv.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-secondary-200 hover:bg-secondary-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-secondary-900">
+                      <span className="text-sm font-medium text-foreground">
                         {srv.orcamento?.tipo_servico || "Sem tipo"}
                       </span>
-                      <span className="text-xs text-secondary-500 flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {srv.data_inicio
                           ? formatDate(srv.data_inicio, "dd/MM/yyyy")
@@ -462,7 +462,7 @@ export default function ClienteDetalhePage({
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-secondary-900">
+                    <span className="text-sm font-semibold text-foreground">
                       {srv.valor
                         ? formatCurrency(srv.valor)
                         : srv.orcamento?.valor_final
@@ -490,7 +490,7 @@ export default function ClienteDetalhePage({
             <CardTitle>Notas</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-secondary-600 whitespace-pre-wrap">
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {cliente.notas}
             </p>
           </CardContent>
@@ -498,7 +498,7 @@ export default function ClienteDetalhePage({
       )}
 
       {/* Meta */}
-      <p className="text-sm text-secondary-400">
+      <p className="text-sm text-muted-foreground">
         Cadastrado em {formatDate(cliente.created_at, "dd 'de' MMMM 'de' yyyy")}
       </p>
 

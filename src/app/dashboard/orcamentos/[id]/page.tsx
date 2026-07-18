@@ -19,14 +19,14 @@ import {
   X,
   Phone,
   MapPin,
-  DollarSign,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { OrcamentoForm } from "@/components/orcamento/orcamento-form";
+import { ConcluirServicoModal } from "@/components/servicos/concluir-servico-modal";
 import {
   getOrcamentoById,
   updateOrcamento,
@@ -35,8 +35,7 @@ import {
   getPerfuradorData,
   getClientesForSelect,
   createServicoDeOrcamento,
-  createLancamentoConclusao,
-  concluirServico,
+  getServicoIdByOrcamento,
 } from "../actions";
 import { createCliente } from "@/app/dashboard/clientes/actions";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -97,18 +96,14 @@ export default function OrcamentoDetalhePage({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showConcluirModal, setShowConcluirModal] = useState(false);
   const [servicoId, setServicoId] = useState<string | null>(null);
-  const [concluirForm, setConcluirForm] = useState({
-    valor: 0,
-    desconto: 0,
-    data: new Date().toISOString().split("T")[0],
-    descricao: "",
-  });
+  const [criandoServico, setCriandoServico] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [orcRes, perfRes] = await Promise.all([
+    const [orcRes, perfRes, servRes] = await Promise.all([
       getOrcamentoById(params.id),
       getPerfuradorData(),
+      getServicoIdByOrcamento(params.id),
     ]);
 
     if (orcRes.error || !orcRes.orcamento) {
@@ -119,6 +114,7 @@ export default function OrcamentoDetalhePage({
 
     setOrcamento(orcRes.orcamento);
     setPerfurador(perfRes.perfurador as Perfurador);
+    setServicoId(servRes.servicoId);
     setLoading(false);
   }, [params.id, router]);
 
@@ -183,63 +179,41 @@ export default function OrcamentoDetalhePage({
     fetchData();
   }
 
-  function handleOpenConcluir() {
+  async function handleCriarServico() {
     if (!orcamento) return;
-    setConcluirForm({
-      valor: orcamento.valor_final ?? 0,
-      desconto: 0,
-      data: new Date().toISOString().split("T")[0],
-      descricao: `Serviço concluído${orcamento.cliente ? ` - ${orcamento.cliente.nome}` : ""}`,
-    });
+    setCriandoServico(true);
+    const result = await createServicoDeOrcamento(orcamento.id);
+    setCriandoServico(false);
+    if (result.error || !result.servicoId) {
+      toast.error(result.error ?? "Não foi possível criar o serviço");
+      return;
+    }
+    setServicoId(result.servicoId);
+    toast.success("Serviço criado e vinculado ao orçamento!");
+  }
+
+  async function handleOpenConcluir() {
+    if (!orcamento) return;
+    // Garante um serviço para concluir (idempotente); a conclusão reusa o
+    // fluxo rico do serviço (à vista / parcelado / com sinal).
+    if (!servicoId) {
+      setSubmitting(true);
+      const result = await createServicoDeOrcamento(orcamento.id);
+      setSubmitting(false);
+      if (result.error || !result.servicoId) {
+        toast.error(result.error ?? "Não foi possível criar o serviço");
+        return;
+      }
+      setServicoId(result.servicoId);
+    }
     setShowConcluirModal(true);
   }
 
-  async function handleConfirmarConclusao() {
+  async function handleOrcamentoConcluido() {
     if (!orcamento) return;
-    setSubmitting(true);
-
-    let servicoIdParaConclusao = servicoId;
-
-    if (!servicoIdParaConclusao) {
-      const servicoResult = await createServicoDeOrcamento(orcamento.id);
-      if (servicoResult.error || !servicoResult.servicoId) {
-        setSubmitting(false);
-        toast.error(servicoResult.error ?? "Não foi possível criar o serviço");
-        return;
-      }
-      servicoIdParaConclusao = servicoResult.servicoId;
-      setServicoId(servicoIdParaConclusao);
-    }
-
-    const [statusResult, lancamentoResult] = await Promise.all([
-      updateOrcamentoStatus(orcamento.id, "concluido"),
-      createLancamentoConclusao({
-        servicoId: servicoIdParaConclusao,
-        valor: concluirForm.valor,
-        desconto: concluirForm.desconto,
-        data: concluirForm.data,
-        descricao: concluirForm.descricao,
-      }),
-    ]);
-
-    let hasError = false;
-    if (statusResult.error) {
-      toast.error(statusResult.error);
-      hasError = true;
-    }
-    if (lancamentoResult.error) {
-      toast.error(`Erro no lançamento: ${lancamentoResult.error}`);
-      hasError = true;
-    }
-
-    if (servicoIdParaConclusao) {
-      const s = await concluirServico(servicoIdParaConclusao);
-      if (s.error) toast.error(`Erro ao concluir serviço: ${s.error}`);
-    }
-
-    setSubmitting(false);
-    setShowConcluirModal(false);
-    if (!hasError) toast.success("Orçamento concluído e receita registrada!");
+    const result = await updateOrcamentoStatus(orcamento.id, "concluido");
+    if (result.error) toast.error(result.error);
+    else toast.success("Orçamento concluído! Parcelas geradas em Contas a Receber.");
     fetchData();
   }
 
@@ -328,12 +302,12 @@ export default function OrcamentoDetalhePage({
         <div>
           <button
             onClick={() => setMode("view")}
-            className="inline-flex items-center gap-1 text-sm text-secondary-500 hover:text-secondary-700 transition-colors mb-3"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
           >
             <X className="h-4 w-4" />
             Cancelar edição
           </button>
-          <h1 className="text-2xl font-bold text-secondary-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Editar Orçamento
           </h1>
         </div>
@@ -358,14 +332,14 @@ export default function OrcamentoDetalhePage({
       <div>
         <Link
           href="/dashboard/orcamentos"
-          className="inline-flex items-center gap-1 text-sm text-secondary-500 hover:text-secondary-700 transition-colors mb-3"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
         >
           <ArrowLeft className="h-4 w-4" />
           Voltar para orçamentos
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-secondary-900">
+            <h1 className="text-2xl font-bold text-foreground">
               Orçamento #{orcamento.id.slice(0, 8).toUpperCase()}
             </h1>
             <Badge variant={statusBadgeVariant(orcamento.status)}>
@@ -373,6 +347,14 @@ export default function OrcamentoDetalhePage({
             </Badge>
           </div>
           <div className="flex flex-wrap gap-2">
+            {servicoId && (
+              <Link href={`/dashboard/servicos/${servicoId}`}>
+                <Button variant="outline" size="sm">
+                  <Wrench className="mr-2 h-4 w-4" />
+                  Ver serviço
+                </Button>
+              </Link>
+            )}
             {/* Action buttons per status */}
             {orcamento.status === "rascunho" && (
               <>
@@ -412,6 +394,21 @@ export default function OrcamentoDetalhePage({
             )}
             {orcamento.status === "aprovado" && (
               <>
+                {!servicoId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCriarServico}
+                    disabled={criandoServico}
+                  >
+                    {criandoServico ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wrench className="mr-2 h-4 w-4" />
+                    )}
+                    Criar serviço vinculado
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   onClick={() => handleStatusChange("em_execucao")}
@@ -516,10 +513,10 @@ export default function OrcamentoDetalhePage({
           <CardContent>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <p className="font-medium text-secondary-900">
+                <p className="font-medium text-foreground">
                   {orcamento.cliente.nome}
                 </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-secondary-500">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                   <a
                     href={`tel:${orcamento.cliente.telefone}`}
                     className="inline-flex items-center gap-1 hover:text-primary transition-colors"
@@ -555,8 +552,8 @@ export default function OrcamentoDetalhePage({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               {orcamento.tipo_servico && (
                 <div>
-                  <p className="text-secondary-400">Tipo de Serviço</p>
-                  <p className="font-medium text-secondary-900">
+                  <p className="text-muted-foreground">Tipo de Serviço</p>
+                  <p className="font-medium text-foreground">
                     {SERVICO_LABELS[orcamento.tipo_servico] ||
                       orcamento.tipo_servico}
                   </p>
@@ -564,24 +561,24 @@ export default function OrcamentoDetalhePage({
               )}
               {orcamento.profundidade_estimada_metros && (
                 <div>
-                  <p className="text-secondary-400">Profundidade</p>
-                  <p className="font-medium text-secondary-900">
+                  <p className="text-muted-foreground">Profundidade</p>
+                  <p className="font-medium text-foreground">
                     {orcamento.profundidade_estimada_metros}m
                   </p>
                 </div>
               )}
               {orcamento.diametro_polegadas && (
                 <div>
-                  <p className="text-secondary-400">Diâmetro</p>
-                  <p className="font-medium text-secondary-900">
+                  <p className="text-muted-foreground">Diâmetro</p>
+                  <p className="font-medium text-foreground">
                     {orcamento.diametro_polegadas}&quot;
                   </p>
                 </div>
               )}
               {orcamento.tipo_solo && (
                 <div>
-                  <p className="text-secondary-400">Tipo de Solo</p>
-                  <p className="font-medium text-secondary-900">
+                  <p className="text-muted-foreground">Tipo de Solo</p>
+                  <p className="font-medium text-foreground">
                     {SOLO_LABELS[orcamento.tipo_solo] || orcamento.tipo_solo}
                   </p>
                 </div>
@@ -601,35 +598,35 @@ export default function OrcamentoDetalhePage({
             {itens.map((item, i) => (
               <div
                 key={i}
-                className="flex justify-between text-sm py-2 border-b border-secondary-100 last:border-0"
+                className="flex justify-between text-sm py-2 border-b border-border last:border-0"
               >
                 <div>
-                  <span className="text-secondary-900">{item.descricao}</span>
-                  <span className="text-secondary-400 ml-2">
+                  <span className="text-foreground">{item.descricao}</span>
+                  <span className="text-muted-foreground ml-2">
                     ({item.qtd} {item.unidade} ×{" "}
                     {formatCurrency(item.valor_unit)})
                   </span>
                 </div>
-                <span className="font-medium text-secondary-900 shrink-0 ml-4">
+                <span className="font-medium text-foreground shrink-0 ml-4">
                   {formatCurrency(item.qtd * item.valor_unit)}
                 </span>
               </div>
             ))}
           </div>
-          <div className="mt-4 space-y-1 text-sm border-t border-secondary-200 pt-4">
+          <div className="mt-4 space-y-1 text-sm border-t border-border pt-4">
             <div className="flex justify-between">
-              <span className="text-secondary-500">Subtotal</span>
+              <span className="text-muted-foreground">Subtotal</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             {desconto > 0 && (
               <div className="flex justify-between">
-                <span className="text-secondary-500">Desconto</span>
+                <span className="text-muted-foreground">Desconto</span>
                 <span className="text-danger">
                   - {formatCurrency(desconto)}
                 </span>
               </div>
             )}
-            <div className="flex justify-between border-t border-secondary-200 pt-3 mt-2">
+            <div className="flex justify-between border-t border-border pt-3 mt-2">
               <span className="text-lg font-bold">Total</span>
               <span className="text-lg font-bold text-primary">
                 {formatCurrency(valorFinal)}
@@ -650,24 +647,24 @@ export default function OrcamentoDetalhePage({
           <CardContent className="space-y-2 text-sm">
             {orcamento.forma_pagamento && (
               <p>
-                <span className="text-secondary-400">Pagamento:</span>{" "}
+                <span className="text-muted-foreground">Pagamento:</span>{" "}
                 {orcamento.forma_pagamento}
               </p>
             )}
             {orcamento.prazo_execucao_dias && (
               <p>
-                <span className="text-secondary-400">Prazo:</span>{" "}
+                <span className="text-muted-foreground">Prazo:</span>{" "}
                 {orcamento.prazo_execucao_dias} dias
               </p>
             )}
             <p>
-              <span className="text-secondary-400">Validade:</span>{" "}
+              <span className="text-muted-foreground">Validade:</span>{" "}
               {orcamento.validade_dias} dias
             </p>
             {orcamento.observacoes && (
-              <div className="border-t border-secondary-200 pt-3 mt-3">
-                <p className="text-secondary-400 mb-1">Observações:</p>
-                <p className="text-secondary-600 whitespace-pre-wrap">
+              <div className="border-t border-border pt-3 mt-3">
+                <p className="text-muted-foreground mb-1">Observações:</p>
+                <p className="text-muted-foreground whitespace-pre-wrap">
                   {orcamento.observacoes}
                 </p>
               </div>
@@ -677,7 +674,7 @@ export default function OrcamentoDetalhePage({
       )}
 
       {/* Meta */}
-      <p className="text-sm text-secondary-400">
+      <p className="text-sm text-muted-foreground">
         Criado em{" "}
         {formatDate(orcamento.created_at, "dd 'de' MMMM 'de' yyyy 'às' HH:mm")}
         {orcamento.enviado_em &&
@@ -686,93 +683,24 @@ export default function OrcamentoDetalhePage({
           ` | Aprovado em ${formatDate(orcamento.aprovado_em)}`}
       </p>
 
-      {/* Concluir dialog */}
-      <Dialog
-        open={showConcluirModal}
+      {/* Concluir: reusa o fluxo rico do serviço (à vista / parcelado / com sinal) */}
+      <ConcluirServicoModal
+        open={showConcluirModal && !!servicoId}
         onClose={() => setShowConcluirModal(false)}
-        className="max-w-md"
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-success" />
-            Confirmar Conclusão
-          </DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-secondary-600 mt-2 mb-4">
-          Confirme os dados de recebimento. Um lançamento de receita será criado
-          automaticamente.
-        </p>
-        <div className="space-y-4">
-          <Input
-            label="Valor recebido (R$)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={concluirForm.valor}
-            onChange={(e) =>
-              setConcluirForm((f) => ({
-                ...f,
-                valor: parseFloat(e.target.value) || 0,
-              }))
-            }
-          />
-          <Input
-            label="Desconto (R$)"
-            type="number"
-            step="0.01"
-            min="0"
-            value={concluirForm.desconto}
-            onChange={(e) =>
-              setConcluirForm((f) => ({
-                ...f,
-                desconto: parseFloat(e.target.value) || 0,
-              }))
-            }
-          />
-          <Input
-            label="Data de recebimento"
-            type="date"
-            value={concluirForm.data}
-            onChange={(e) =>
-              setConcluirForm((f) => ({ ...f, data: e.target.value }))
-            }
-          />
-          <Input
-            label="Descrição"
-            value={concluirForm.descricao}
-            onChange={(e) =>
-              setConcluirForm((f) => ({ ...f, descricao: e.target.value }))
-            }
-          />
-          <div className="border-t border-secondary-100 pt-3">
-            <p className="text-sm text-secondary-500">
-              Valor líquido:{" "}
-              <span className="font-semibold text-success">
-                {formatCurrency(
-                  Math.max(0, concluirForm.valor - concluirForm.desconto),
-                )}
-              </span>
-            </p>
-          </div>
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setShowConcluirModal(false)}
-            disabled={submitting}
-          >
-            Cancelar
-          </Button>
-          <Button onClick={handleConfirmarConclusao} disabled={submitting}>
-            {submitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <CheckCircle className="mr-2 h-4 w-4" />
-            )}
-            Confirmar
-          </Button>
-        </div>
-      </Dialog>
+        servico={
+          servicoId
+            ? {
+                id: servicoId,
+                valor: orcamento.valor_final ?? null,
+                cliente: orcamento.cliente
+                  ? { nome: orcamento.cliente.nome }
+                  : null,
+                orcamento: { valor_final: orcamento.valor_final ?? null },
+              }
+            : null
+        }
+        onConcluded={handleOrcamentoConcluido}
+      />
 
       {/* Delete dialog */}
       <Dialog
@@ -786,7 +714,7 @@ export default function OrcamentoDetalhePage({
             Excluir Orçamento
           </DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-secondary-600 mt-2">
+        <p className="text-sm text-muted-foreground mt-2">
           Tem certeza que deseja excluir este orçamento? Esta ação não pode ser
           desfeita.
         </p>

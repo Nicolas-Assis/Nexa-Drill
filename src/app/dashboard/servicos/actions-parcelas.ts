@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
 import { createServiceClient } from "@/lib/supabase/service";
+import { firstOf } from "@/lib/utils";
 import {
   asaasConfigured,
   createCustomer,
@@ -651,11 +652,12 @@ export async function getParcelasFiltradas(filtros?: {
     if (error) return { parcelas: [], error: error.message };
 
     const parcelas: ParcelaComCliente[] = (data ?? []).map((row) => {
-      const clienteArr = row.cliente as
-        | { nome: string; telefone: string | null }[]
-        | null;
-      const cliente =
-        clienteArr && clienteArr.length > 0 ? clienteArr[0] : null;
+      const cliente = firstOf(
+        row.cliente as
+          | { nome: string; telefone: string | null }
+          | { nome: string; telefone: string | null }[]
+          | null,
+      );
       const { situacao, dias } = computeSituacao(
         row.status as string,
         row.vencimento as string,

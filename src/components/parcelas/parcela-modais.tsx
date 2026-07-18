@@ -40,6 +40,10 @@ export type ParcelaAcao = {
   status: string;
   cliente_nome?: string | null;
   cliente_telefone?: string | null;
+  pix_copia_cola?: string | null;
+  boleto_url?: string | null;
+  link_pagamento?: string | null;
+  asaas_cobranca_id?: string | null;
 };
 
 function hojeISO() {
@@ -98,7 +102,7 @@ export function BaixarModal({
       <DialogHeader>
         <DialogTitle>Marcar como paga</DialogTitle>
       </DialogHeader>
-      <p className="text-sm text-secondary-500 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         {parcela.descricao ?? "Parcela"}
         {parcela.cliente_nome ? ` · ${parcela.cliente_nome}` : ""}
       </p>
@@ -155,6 +159,118 @@ type CobrancaData = {
   encodedImage: string | null;
 };
 
+// Bloco de resultado da cobrança (QR, Pix copia-e-cola, WhatsApp, link/boleto).
+// Reusado por CobrarModal (após gerar) e VisualizarCobrancaModal (persistido).
+function CobrancaResultado({
+  dados,
+  parcela,
+}: {
+  dados: CobrancaData;
+  parcela: ParcelaAcao;
+}) {
+  const [copiado, setCopiado] = useState(false);
+  const semPix = !dados.pixCopiaCola && !dados.encodedImage;
+
+  async function copiarPix() {
+    await copiar(dados.pixCopiaCola, "Código Pix");
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
+
+  function whatsappHref(): string {
+    const tel = (parcela.cliente_telefone ?? "").replace(/\D/g, "");
+    const nome = parcela.cliente_nome ?? "";
+    const cobrancaTxt = dados.pixCopiaCola ?? dados.linkPagamento ?? "";
+    const msg = `Olá ${nome}! Segue a cobrança de ${formatCurrency(parcela.valor)} referente a ${parcela.descricao ?? "serviço"} (vence ${formatDate(parcela.vencimento)}).${cobrancaTxt ? `\n\nPague pelo Pix:\n${cobrancaTxt}` : ""}`;
+    return `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`;
+  }
+
+  return (
+    <div className="space-y-4">
+      {dados.encodedImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`data:image/png;base64,${dados.encodedImage}`}
+          alt="QR Code Pix"
+          className="mx-auto h-48 w-48"
+        />
+      )}
+
+      {dados.pixCopiaCola && (
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">Pix copia e cola</p>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={dados.pixCopiaCola}
+              className="flex-1 rounded-lg border border-input bg-muted px-3 py-2 text-xs"
+            />
+            <Button size="sm" onClick={copiarPix}>
+              {copiado ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {semPix && (
+        <div className="rounded-lg border border-accent-200 bg-accent-50 p-3">
+          <p className="text-sm text-foreground">
+            Sem chave Pix nesta cobrança — use o boleto ou o link de pagamento
+            abaixo.
+          </p>
+        </div>
+      )}
+
+      {parcela.cliente_telefone && (
+        <a
+          href={whatsappHref()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-success px-3 py-2.5 text-sm font-medium text-white hover:bg-success/90"
+        >
+          <MessageCircle className="h-4 w-4" /> Enviar no WhatsApp
+        </a>
+      )}
+
+      <div className="grid grid-cols-1 gap-2">
+        {dados.linkPagamento && (
+          <div className="flex gap-2">
+            <a
+              href={dados.linkPagamento}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-input px-3 py-2 text-sm hover:bg-muted"
+            >
+              <ExternalLink className="h-4 w-4" /> Link de pagamento
+            </a>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => copiar(dados.linkPagamento, "Link")}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        {dados.boletoUrl && (
+          <a
+            href={dados.boletoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-input px-3 py-2 text-sm hover:bg-muted"
+          >
+            <FileText className="h-4 w-4" /> Baixar boleto
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function CobrarModal({
   parcela,
   onClose,
@@ -168,7 +284,6 @@ export function CobrarModal({
   const [gerado, setGerado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [dados, setDados] = useState<CobrancaData | null>(null);
-  const [copiado, setCopiado] = useState(false);
 
   async function gerar() {
     setLoading(true);
@@ -184,23 +299,7 @@ export function CobrarModal({
     }
   }
 
-  async function copiarPix() {
-    await copiar(dados?.pixCopiaCola ?? null, "Código Pix");
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
-  }
-
-  const semPix =
-    gerado && !erro && !dados?.pixCopiaCola && !dados?.encodedImage;
   const isCpfErro = !!erro && /cpf|cnpj/i.test(erro);
-
-  function whatsappHref(): string {
-    const tel = (parcela.cliente_telefone ?? "").replace(/\D/g, "");
-    const nome = parcela.cliente_nome ?? "";
-    const cobrancaTxt = dados?.pixCopiaCola ?? dados?.linkPagamento ?? "";
-    const msg = `Olá ${nome}! Segue a cobrança de ${formatCurrency(parcela.valor)} referente a ${parcela.descricao ?? "serviço"} (vence ${formatDate(parcela.vencimento)}).${cobrancaTxt ? `\n\nPague pelo Pix:\n${cobrancaTxt}` : ""}`;
-    return `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`;
-  }
 
   return (
     <Dialog open onClose={onClose} className="max-w-md">
@@ -211,19 +310,19 @@ export function CobrarModal({
       {/* Resumo + confirmação (antes de gerar) */}
       {!gerado && !loading && (
         <div className="space-y-4">
-          <div className="rounded-lg border border-secondary-200 p-4 space-y-1">
-            <p className="text-sm text-secondary-500">
+          <div className="rounded-lg border border-border p-4 space-y-1">
+            <p className="text-sm text-muted-foreground">
               {parcela.cliente_nome ?? "Cliente"}
             </p>
-            <p className="text-2xl font-bold text-secondary-900">
+            <p className="text-2xl font-bold text-foreground">
               {formatCurrency(parcela.valor)}
             </p>
-            <p className="text-sm text-secondary-500">
+            <p className="text-sm text-muted-foreground">
               {parcela.descricao ?? "Parcela"} · vence{" "}
               {formatDate(parcela.vencimento)}
             </p>
           </div>
-          <p className="text-xs text-secondary-400">
+          <p className="text-xs text-muted-foreground">
             Isso gera uma cobrança real no Asaas e o cliente pode ser notificado
             automaticamente.
           </p>
@@ -242,7 +341,7 @@ export function CobrarModal({
       {loading && (
         <div className="flex flex-col items-center justify-center py-10 gap-2">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <p className="text-sm text-secondary-500">Gerando cobrança...</p>
+          <p className="text-sm text-muted-foreground">Gerando cobrança...</p>
         </div>
       )}
 
@@ -272,94 +371,11 @@ export function CobrarModal({
       {/* Resultado */}
       {gerado && !erro && dados && (
         <div className="space-y-4">
-          {dados.encodedImage && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`data:image/png;base64,${dados.encodedImage}`}
-              alt="QR Code Pix"
-              className="mx-auto h-48 w-48"
-            />
-          )}
-
-          {dados.pixCopiaCola && (
-            <div>
-              <p className="text-xs text-secondary-500 mb-1">
-                Pix copia e cola
-              </p>
-              <div className="flex gap-2">
-                <input
-                  readOnly
-                  value={dados.pixCopiaCola}
-                  className="flex-1 rounded-lg border border-secondary-300 bg-secondary-50 px-3 py-2 text-xs"
-                />
-                <Button size="sm" onClick={copiarPix}>
-                  {copiado ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {semPix && (
-            <div className="rounded-lg border border-accent-200 bg-accent-50 p-3">
-              <p className="text-sm text-secondary-700">
-                Esta conta Asaas ainda não tem chave Pix — use o boleto ou o
-                link de pagamento abaixo.
-              </p>
-            </div>
-          )}
-
-          {parcela.cliente_telefone && (
-            <a
-              href={whatsappHref()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-success px-3 py-2.5 text-sm font-medium text-white hover:bg-success/90"
-            >
-              <MessageCircle className="h-4 w-4" /> Enviar no WhatsApp
-            </a>
-          )}
-
-          <div className="grid grid-cols-1 gap-2">
-            {dados.linkPagamento && (
-              <div className="flex gap-2">
-                <a
-                  href={dados.linkPagamento}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-secondary-300 px-3 py-2 text-sm hover:bg-secondary-50"
-                >
-                  <ExternalLink className="h-4 w-4" /> Link de pagamento
-                </a>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => copiar(dados.linkPagamento, "Link")}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-            {dados.boletoUrl && (
-              <a
-                href={dados.boletoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-secondary-300 px-3 py-2 text-sm hover:bg-secondary-50"
-              >
-                <FileText className="h-4 w-4" /> Baixar boleto
-              </a>
-            )}
-          </div>
-
-          <p className="text-xs text-secondary-400">
+          <CobrancaResultado dados={dados} parcela={parcela} />
+          <p className="text-xs text-muted-foreground">
             O Asaas também notifica o cliente automaticamente conforme a régua
             configurada na conta.
           </p>
-
           <div className="flex justify-end">
             <Button variant="outline" onClick={onClose}>
               Fechar
@@ -367,6 +383,50 @@ export function CobrarModal({
           </div>
         </div>
       )}
+    </Dialog>
+  );
+}
+
+// ── Visualizar cobrança existente (dados persistidos, sem gerar de novo) ─────
+export function VisualizarCobrancaModal({
+  parcela,
+  onClose,
+}: {
+  parcela: ParcelaAcao;
+  onClose: () => void;
+}) {
+  const dados: CobrancaData = {
+    pixCopiaCola: parcela.pix_copia_cola ?? null,
+    boletoUrl: parcela.boleto_url ?? null,
+    linkPagamento: parcela.link_pagamento ?? null,
+    encodedImage: null,
+  };
+
+  return (
+    <Dialog open onClose={onClose} className="max-w-md">
+      <DialogHeader>
+        <DialogTitle>Cobrança</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4">
+        <div className="rounded-lg border border-border p-4 space-y-1">
+          <p className="text-sm text-muted-foreground">
+            {parcela.cliente_nome ?? "Cliente"}
+          </p>
+          <p className="text-2xl font-bold text-foreground">
+            {formatCurrency(parcela.valor)}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {parcela.descricao ?? "Parcela"} · vence{" "}
+            {formatDate(parcela.vencimento)}
+          </p>
+        </div>
+        <CobrancaResultado dados={dados} parcela={parcela} />
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={onClose}>
+            Fechar
+          </Button>
+        </div>
+      </div>
     </Dialog>
   );
 }
@@ -479,7 +539,7 @@ export function CancelarParcelaModal({
           Cancelar parcela
         </DialogTitle>
       </DialogHeader>
-      <p className="text-sm text-secondary-600 mt-2 mb-6">
+      <p className="text-sm text-muted-foreground mt-2 mb-6">
         Cancelar &quot;{parcela.descricao ?? "parcela"}&quot; de{" "}
         {formatCurrency(parcela.valor)}? Parcelas já pagas não podem ser
         canceladas.
@@ -565,7 +625,7 @@ export function NovaCobrancaModal({
       </DialogHeader>
       {clientes.length === 0 ? (
         <div className="py-4 space-y-3">
-          <p className="text-sm text-secondary-500">
+          <p className="text-sm text-muted-foreground">
             Cadastre um cliente antes de criar uma cobrança.
           </p>
           <Link
@@ -585,7 +645,7 @@ export function NovaCobrancaModal({
             options={clientes.map((c) => ({ value: c.id, label: c.nome }))}
           />
           {semDoc && (
-            <div className="rounded-lg border border-accent-200 bg-accent-50 p-3 text-sm text-secondary-700">
+            <div className="rounded-lg border border-accent-200 bg-accent-50 p-3 text-sm text-foreground">
               Este cliente não tem CPF/CNPJ — necessário para gerar Pix/boleto.{" "}
               <Link
                 href="/dashboard/clientes"
@@ -623,7 +683,7 @@ export function NovaCobrancaModal({
               onChange={(e) => setVencimento(e.target.value)}
             />
           </div>
-          <p className="text-xs text-secondary-400">
+          <p className="text-xs text-muted-foreground">
             Valor mínimo para cobrança (Pix/boleto): R$ 5,00.
           </p>
         </div>
