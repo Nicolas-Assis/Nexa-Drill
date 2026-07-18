@@ -454,3 +454,62 @@ export async function getDashboardData(): Promise<DashboardData> {
     return { ...empty, error: (err as Error).message };
   }
 }
+
+// ── Primeiros passos (checklist de onboarding) ───────────────────────────────
+export type PrimeirosPassos = {
+  perfilCompleto: boolean;
+  temCliente: boolean;
+  temOrcamento: boolean;
+  temServico: boolean;
+  temCobranca: boolean;
+};
+
+export async function getPrimeirosPassos(): Promise<{
+  passos: PrimeirosPassos;
+  error: string | null;
+}> {
+  const vazio: PrimeirosPassos = {
+    perfilCompleto: false,
+    temCliente: false,
+    temOrcamento: false,
+    temServico: false,
+    temCobranca: false,
+  };
+  try {
+    const { supabase, perfurador, perfuradorId } =
+      await getAuthenticatedPerfurador();
+
+    const countAllTime = async (table: string) => {
+      const { count } = await supabase
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("perfurador_id", perfuradorId);
+      return (count ?? 0) > 0;
+    };
+
+    const [temCliente, temOrcamento, temServico, temCobranca] =
+      await Promise.all([
+        countAllTime("clientes"),
+        countAllTime("orcamentos"),
+        countAllTime("servicos"),
+        countAllTime("parcelas"),
+      ]);
+
+    const p = perfurador as unknown as {
+      bio: string | null;
+      logo_url: string | null;
+      slug: string | null;
+      tipos_servico: string[] | null;
+    };
+    const perfilCompleto = Boolean(
+      p.bio && p.logo_url && p.slug && (p.tipos_servico?.length ?? 0) > 0,
+    );
+
+    return {
+      passos: { perfilCompleto, temCliente, temOrcamento, temServico, temCobranca },
+      error: null,
+    };
+  } catch (err) {
+    return { passos: vazio, error: (err as Error).message };
+  }
+}

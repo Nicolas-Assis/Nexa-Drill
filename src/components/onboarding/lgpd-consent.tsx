@@ -6,6 +6,7 @@ import { ShieldCheck, UserCheck, Server, Lock, ExternalLink } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
 import { usePerfurador } from "@/hooks/use-perfurador";
+import { startTour } from "@/lib/onboarding";
 
 const CONSENT_VERSION = "v1";
 const storageKey = (id: string) => `nexadrill:consent:${CONSENT_VERSION}:${id}`;
@@ -63,6 +64,8 @@ export function LgpdConsent() {
       // ignora falha de persistência
     }
     setOpen(false);
+    // Emenda o tour de boas-vindas logo após o aceite
+    setTimeout(() => startTour(), 300);
   }
 
   if (!open) return null;

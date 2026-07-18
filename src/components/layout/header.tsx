@@ -1,12 +1,20 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, UserCircle, ShieldCheck } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+  UserCircle,
+  ShieldCheck,
+  Compass,
+  ListChecks,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { usePerfurador } from "@/hooks/use-perfurador";
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/brand/logo";
 import { PAGE_TITLES } from "@/lib/constants";
+import { startTour, showPrimeirosPassos } from "@/lib/onboarding";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -33,6 +41,16 @@ export function Header({ onMenuClick }: HeaderProps) {
   async function handleLogout() {
     await authClient.signOut();
     router.push("/login");
+  }
+
+  function handleRefazerTour() {
+    router.push("/dashboard");
+    startTour();
+  }
+
+  function handlePrimeirosPassos() {
+    router.push("/dashboard?guia=1");
+    showPrimeirosPassos();
   }
 
   const initials = perfurador?.nome
@@ -63,7 +81,10 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center gap-2">
         <DropdownMenu
           trigger={
-            <button className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-muted">
+            <button
+              data-tour="user-menu"
+              className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-muted"
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                 {initials}
               </div>
@@ -85,6 +106,15 @@ export function Header({ onMenuClick }: HeaderProps) {
           <DropdownMenuItem onClick={() => router.push("/dashboard/termos")}>
             <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" />
             Termos e Privacidade
+          </DropdownMenuItem>
+          <div className="my-1 border-t border-border" />
+          <DropdownMenuItem onClick={handlePrimeirosPassos}>
+            <ListChecks className="mr-2 h-4 w-4 text-muted-foreground" />
+            Primeiros passos
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleRefazerTour}>
+            <Compass className="mr-2 h-4 w-4 text-muted-foreground" />
+            Refazer tour
           </DropdownMenuItem>
           <div className="my-1 border-t border-border" />
           <DropdownMenuItem

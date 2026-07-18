@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ChartReceitaDespesa } from "@/components/financeiro/chart-receita-despesa";
 import { ChartRecebimentos } from "@/components/charts/chart-recebimentos";
+import { PrimeirosPassos } from "@/components/onboarding/primeiros-passos";
 import {
   getDashboardData,
   type DashboardData,
@@ -398,6 +399,9 @@ export default function DashboardPage() {
         </h1>
         <p className="mt-1 text-muted-foreground">Visão geral do seu negócio</p>
       </div>
+
+      {/* Checklist de primeiros passos (onboarding) */}
+      <PrimeirosPassos />
 
       {/* Alerta de parcelas atrasadas */}
       {!loading && dashboardData.atrasadoQtd > 0 && (
