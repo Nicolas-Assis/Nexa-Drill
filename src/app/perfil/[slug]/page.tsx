@@ -489,9 +489,20 @@ export default async function PerfilPublicoPage({
                         alt="Foto do serviço"
                         className="h-48 w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                    ) : perfurador.logo_url ? (
+                      // Sem foto do serviço → usa a logo da empresa como fallback
+                      <div className="flex h-48 w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-8">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={perfurador.logo_url}
+                          alt={displayName}
+                          className="max-h-28 max-w-[80%] object-contain"
+                        />
+                      </div>
                     ) : (
-                      <div className="flex h-48 w-full items-center justify-center bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50">
-                        <Droplets className="h-14 w-14 text-secondary-200" />
+                      <div className="relative flex h-48 w-full items-center justify-center overflow-hidden bg-gradient-to-br from-primary-900 to-primary-700">
+                        <div className="tech-grid absolute inset-0 opacity-30" />
+                        <Droplets className="h-14 w-14 text-white/15" />
                       </div>
                     )}
                     <div className="p-5 space-y-3">

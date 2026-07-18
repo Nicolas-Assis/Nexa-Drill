@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { PortfolioManager } from "@/components/servicos/portfolio-manager";
 import { cn } from "@/lib/utils";
 import {
   ESTADOS_BRASILEIROS,
@@ -418,6 +419,8 @@ export default function PerfilPage() {
           </Button>
         </div>
       </form>
+
+      <PortfolioManager />
     </div>
   );
 }

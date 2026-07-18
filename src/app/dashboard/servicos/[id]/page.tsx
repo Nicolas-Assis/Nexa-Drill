@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -13,8 +13,6 @@ import {
   X,
   DollarSign,
   Camera,
-  Plus,
-  ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +22,7 @@ import { Dialog, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServicoForm } from "@/components/servicos/servico-form";
 import { MargemCard } from "@/components/servicos/margem-card";
 import { ConcluirServicoModal } from "@/components/servicos/concluir-servico-modal";
+import { ServicoFotos } from "@/components/servicos/servico-fotos";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   STATUS_SERVICO_OPTIONS,
@@ -37,9 +36,6 @@ import {
   getClientesForSelect,
   getOrcamentosForSelect,
   cancelarServico,
-  uploadServicoFoto,
-  addServicoFoto,
-  removeServicoFoto,
   type ServicoCreateData,
 } from "../actions";
 import type { Servico, Cliente, Orcamento, StatusServico } from "@/types";
@@ -88,11 +84,6 @@ export default function ServicoDetalhePage({
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  // Photo upload
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [deletingPhoto, setDeletingPhoto] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Modal de conclusão
   const [showConcluirModal, setShowConcluirModal] = useState(false);
@@ -163,60 +154,6 @@ export default function ServicoDetalhePage({
     }
     toast.success("Serviço excluído.");
     router.push("/dashboard/servicos");
-  }
-
-  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !servico) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 5MB.");
-      return;
-    }
-
-    setUploadingPhoto(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const uploadResult = await uploadServicoFoto(servico.id, formData);
-
-    if (uploadResult.error || !uploadResult.url) {
-      toast.error(uploadResult.error ?? "Erro ao fazer upload da imagem.");
-      setUploadingPhoto(false);
-      return;
-    }
-
-    const result = await addServicoFoto(servico.id, uploadResult.url);
-    setUploadingPhoto(false);
-
-    if (result.error) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success("Foto adicionada!");
-    fetchData();
-
-    // Clear input
-    if (photoInputRef.current) {
-      photoInputRef.current.value = "";
-    }
-  }
-
-  async function handleDeletePhoto(fotoUrl: string) {
-    if (!servico) return;
-    setDeletingPhoto(fotoUrl);
-    const result = await removeServicoFoto(servico.id, fotoUrl);
-    setDeletingPhoto(null);
-
-    if (result.error) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success("Foto removida!");
-    fetchData();
   }
 
   if (loading || !servico) {
@@ -531,70 +468,17 @@ export default function ServicoDetalhePage({
       {/* Fotos do Serviço */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Fotos do Serviço
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => photoInputRef.current?.click()}
-              disabled={uploadingPhoto}
-            >
-              {uploadingPhoto ? (
-                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              ) : (
-                <Plus className="mr-1 h-4 w-4" />
-              )}
-              Adicionar foto
-            </Button>
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              aria-label="Upload de foto do serviço"
-              className="hidden"
-              onChange={handlePhotoUpload}
-            />
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
+            Fotos do Serviço
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {servico.fotos && servico.fotos.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {servico.fotos.map((foto, index) => (
-                <div key={index} className="group relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={foto}
-                    alt={`Foto ${index + 1}`}
-                    className="h-32 w-full object-cover rounded-lg border border-border"
-                  />
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="absolute top-2 right-2 h-8 w-8 p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleDeletePhoto(foto)}
-                    disabled={deletingPhoto === foto}
-                  >
-                    {deletingPhoto === foto ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3 w-3" />
-                    )}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <ImageIcon className="h-12 w-12 mb-3" />
-              <p className="text-sm">Nenhuma foto adicionada</p>
-              <p className="text-xs mt-1">
-                Adicione fotos para exibir no seu portfólio público
-              </p>
-            </div>
-          )}
+          <ServicoFotos
+            servicoId={servico.id}
+            fotos={servico.fotos ?? []}
+            onChanged={fetchData}
+          />
         </CardContent>
       </Card>
 
