@@ -12,7 +12,12 @@ export function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  if (!isAuthenticated && pathname.startsWith("/dashboard")) {
+  // /dashboard e /admin exigem sessão. A checagem de PAPEL (admin) é feita no
+  // layout server de /admin (o Edge não faz consulta ao banco).
+  if (
+    !isAuthenticated &&
+    (pathname.startsWith("/dashboard") || pathname.startsWith("/admin"))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -28,5 +33,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/cadastro"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/login", "/cadastro"],
 };

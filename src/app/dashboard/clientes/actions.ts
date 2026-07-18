@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { logActivity } from "@/lib/activity";
 import { clienteSchema, type ClienteFormData } from "@/lib/validations";
 import type { Cliente } from "@/types";
 
@@ -186,7 +187,7 @@ export async function createCliente(
       return { cliente: null, error: parsed.error.issues[0].message };
     }
 
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const payload = {
       perfurador_id: perfuradorId,
@@ -210,6 +211,15 @@ export async function createCliente(
       return { cliente: null, error: error.message };
     }
 
+    await logActivity({
+      action: "cliente.create",
+      entityType: "cliente",
+      entityId: cliente.id,
+      metadata: { nome: cliente.nome },
+      userId,
+      perfuradorId,
+    });
+
     return { cliente: cliente as Cliente, error: null };
   } catch (err) {
     return { cliente: null, error: (err as Error).message };
@@ -226,7 +236,7 @@ export async function updateCliente(
       return { cliente: null, error: parsed.error.issues[0].message };
     }
 
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const payload = {
       nome: parsed.data.nome,
@@ -251,6 +261,15 @@ export async function updateCliente(
       return { cliente: null, error: error.message };
     }
 
+    await logActivity({
+      action: "cliente.update",
+      entityType: "cliente",
+      entityId: id,
+      metadata: { nome: cliente.nome },
+      userId,
+      perfuradorId,
+    });
+
     return { cliente: cliente as Cliente, error: null };
   } catch (err) {
     return { cliente: null, error: (err as Error).message };
@@ -261,7 +280,7 @@ export async function deleteCliente(
   id: string,
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { error } = await supabase
       .from("clientes")
@@ -272,6 +291,14 @@ export async function deleteCliente(
     if (error) {
       return { success: false, error: error.message };
     }
+
+    await logActivity({
+      action: "cliente.delete",
+      entityType: "cliente",
+      entityId: id,
+      userId,
+      perfuradorId,
+    });
 
     return { success: true, error: null };
   } catch (err) {

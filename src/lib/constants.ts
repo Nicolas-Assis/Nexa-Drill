@@ -15,6 +15,11 @@ import {
   DollarSign,
   BarChart3,
   UserCircle,
+  CreditCard,
+  Activity,
+  History,
+  Package,
+  Receipt,
   type LucideIcon,
 } from "lucide-react";
 
@@ -234,6 +239,7 @@ export const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/receber", label: "Contas a Receber", icon: Wallet, group: "Financeiro" },
   { href: "/dashboard/financeiro", label: "Financeiro", icon: DollarSign, group: "Financeiro" },
   { href: "/dashboard/relatorios/margem", label: "Relatórios", icon: BarChart3, group: "Financeiro" },
+  { href: "/dashboard/assinatura", label: "Assinatura", icon: CreditCard, group: "Conta" },
   { href: "/dashboard/perfil", label: "Meu Perfil", icon: UserCircle, group: "Conta" },
 ];
 
@@ -255,6 +261,44 @@ export const PAGE_TITLES: Record<string, string> = {
   "/dashboard/receber": "Contas a Receber",
   "/dashboard/financeiro": "Financeiro",
   "/dashboard/relatorios/margem": "Relatórios de Margem",
+  "/dashboard/assinatura": "Assinatura",
   "/dashboard/perfil": "Meu Perfil",
   "/dashboard/termos": "Termos e Privacidade",
+};
+
+// ─── Nav items do painel admin ────────────────────────────────────────────────
+
+export type AdminNavGroup = "Visão Geral" | "Usuários" | "Cobrança";
+
+export type AdminNavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  group: AdminNavGroup;
+};
+
+export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
+  { href: "/admin", label: "Visão Geral", icon: LayoutDashboard, group: "Visão Geral" },
+  { href: "/admin/usuarios", label: "Usuários", icon: Users, group: "Usuários" },
+  { href: "/admin/atividade", label: "Atividade", icon: Activity, group: "Usuários" },
+  { href: "/admin/sessoes", label: "Sessões & Logins", icon: History, group: "Usuários" },
+  { href: "/admin/assinaturas", label: "Assinaturas", icon: CreditCard, group: "Cobrança" },
+  { href: "/admin/planos", label: "Planos", icon: Package, group: "Cobrança" },
+  { href: "/admin/faturas", label: "Faturas", icon: Receipt, group: "Cobrança" },
+];
+
+export const ADMIN_NAV_GROUP_ORDER: AdminNavGroup[] = [
+  "Visão Geral",
+  "Usuários",
+  "Cobrança",
+];
+
+export const ADMIN_PAGE_TITLES: Record<string, string> = {
+  "/admin": "Visão Geral",
+  "/admin/usuarios": "Usuários",
+  "/admin/atividade": "Atividade",
+  "/admin/sessoes": "Sessões & Logins",
+  "/admin/assinaturas": "Assinaturas",
+  "/admin/planos": "Planos",
+  "/admin/faturas": "Faturas",
 };

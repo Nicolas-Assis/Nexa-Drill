@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { LgpdConsent } from "@/components/onboarding/lgpd-consent";
 import { WelcomeTour } from "@/components/onboarding/welcome-tour";
+import { ActivityTracker } from "@/components/activity/activity-tracker";
 
 export default function DashboardLayout({
   children,
@@ -24,6 +25,7 @@ export default function DashboardLayout({
       </div>
       <LgpdConsent />
       <WelcomeTour />
+      <ActivityTracker />
     </div>
   );
 }

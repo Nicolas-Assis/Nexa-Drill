@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import {
+  applyAssinaturaPaymentEvent,
+  isAssinaturaPayment,
+} from "@/lib/billing";
 
 // ============================================================
 // Webhook do Asaas — confirmação de pagamento (Fase 4)
@@ -19,7 +23,13 @@ type AsaasWebhookBody = {
     value?: number;
     billingType?: string;
     paymentDate?: string | null;
+    dueDate?: string | null;
     status?: string;
+    // Presentes quando a cobrança nasce de uma assinatura (roteamento):
+    subscription?: string | null;
+    externalReference?: string | null;
+    invoiceUrl?: string | null;
+    bankSlipUrl?: string | null;
   };
 };
 
@@ -78,6 +88,26 @@ export async function POST(req: NextRequest) {
 
   try {
     const paymentId = body.payment?.id;
+
+    // ── Cobrança de ASSINATURA (plataforma → perfurador) ──────────────────────
+    // Roteia antes do fluxo de parcela: cobranças de assinatura carregam
+    // payment.subscription / externalReference "assinatura:<id>".
+    if (isAssinaturaPayment(body.payment) && paymentId) {
+      resultado = await applyAssinaturaPaymentEvent(
+        supabase,
+        evento,
+        body.payment!,
+      );
+
+      if (eventId) {
+        await supabase
+          .from("webhook_logs")
+          .update({ processado: true, resultado })
+          .eq("origem", "asaas")
+          .eq("event_id", eventId);
+      }
+      return NextResponse.json({ ok: true, resultado });
+    }
 
     if (
       (evento === "PAYMENT_CONFIRMED" || evento === "PAYMENT_RECEIVED") &&

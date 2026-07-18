@@ -314,3 +314,148 @@ export type ParcelaUpdate = Partial<
     "id" | "perfurador_id" | "created_at" | "updated_at" | "servico" | "cliente"
   >
 >;
+
+// ============================================================
+// Painel Admin — RBAC, atividade e cobrança (Fase Admin)
+// ============================================================
+
+// Conta de login do Better Auth (tabela "user") + campos do plugin admin.
+export type UserRole = "user" | "admin";
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+  role: UserRole;
+  banned: boolean | null;
+  banReason: string | null;
+  banExpires: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Sessão do Better Auth (tabela "session") — base do histórico de logins.
+export type AuthSession = {
+  id: string;
+  userId: string;
+  token: string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  impersonatedBy: string | null;
+};
+
+// ── Atividade ────────────────────────────────────────────────────────────────
+export type ActivityEventType = "action" | "pageview" | "login" | "logout";
+
+export type ActivityLog = {
+  id: string;
+  user_id: string | null;
+  perfurador_id: string | null;
+  event_type: ActivityEventType;
+  action: string | null;
+  entity_type: string | null;
+  entity_id: string | null;
+  path: string | null;
+  metadata: Record<string, unknown> | null;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
+};
+
+export type ActivitySession = {
+  id: string;
+  user_id: string;
+  perfurador_id: string | null;
+  started_at: string;
+  last_seen_at: string;
+  active_seconds: number;
+  page_views: number;
+  current_path: string | null;
+  ip: string | null;
+  user_agent: string | null;
+  created_at: string;
+};
+
+// ── Cobrança / assinaturas ─────────────────────────────────────────────────────
+export type CicloAssinatura = "mensal" | "anual";
+
+export type StatusAssinatura =
+  | "trial"
+  | "ativa"
+  | "inadimplente"
+  | "cancelada"
+  | "expirada";
+
+export type StatusFatura = "pendente" | "pago" | "atrasado" | "cancelado";
+
+export type Plano = {
+  id: string;
+  nome: string;
+  slug: string;
+  descricao: string | null;
+  preco_mensal: number;
+  preco_anual: number | null;
+  recursos: string[];
+  limites: Record<string, number>;
+  destaque: boolean;
+  ativo: boolean;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Assinatura = {
+  id: string;
+  perfurador_id: string;
+  plano_id: string | null;
+  status: StatusAssinatura;
+  ciclo: CicloAssinatura;
+  preco: number;
+  trial_ate: string | null;
+  inicio: string | null;
+  periodo_atual_inicio: string | null;
+  periodo_atual_fim: string | null;
+  cancelada_em: string | null;
+  asaas_customer_id: string | null;
+  asaas_subscription_id: string | null;
+  billing_type: string | null;
+  created_at: string;
+  updated_at: string;
+  // Relações (joins)
+  plano?: Plano | null;
+};
+
+// View: vw_admin_assinaturas (assinatura + plano + perfurador + MRR)
+export type AdminAssinatura = Assinatura & {
+  plano_nome: string | null;
+  plano_slug: string | null;
+  perfurador_nome: string | null;
+  perfurador_empresa: string | null;
+  perfurador_email: string | null;
+  mrr: number;
+};
+
+export type Fatura = {
+  id: string;
+  assinatura_id: string | null;
+  perfurador_id: string | null;
+  plano_id: string | null;
+  competencia: string | null;
+  valor: number;
+  vencimento: string | null;
+  status: StatusFatura;
+  pago_em: string | null;
+  valor_pago: number | null;
+  metodo_pagamento: string | null;
+  asaas_payment_id: string | null;
+  pix_copia_cola: string | null;
+  boleto_url: string | null;
+  link_pagamento: string | null;
+  created_at: string;
+  updated_at: string;
+};

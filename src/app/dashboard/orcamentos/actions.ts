@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { logActivity } from "@/lib/activity";
 import { orcamentoSchema, type OrcamentoFormData } from "@/lib/validations";
 import type { Orcamento, Cliente, StatusOrcamento } from "@/types";
 
@@ -88,7 +89,7 @@ export async function createOrcamento(
       return { orcamento: null, error: parsed.error.issues[0].message };
     }
 
-    const { supabase, perfurador } = await getAuthenticatedPerfurador();
+    const { supabase, perfurador, userId } = await getAuthenticatedPerfurador();
 
     const itens = parsed.data.itens;
     const valor_total = itens.reduce(
@@ -125,6 +126,16 @@ export async function createOrcamento(
       .single();
 
     if (error) return { orcamento: null, error: error.message };
+
+    await logActivity({
+      action: "orcamento.create",
+      entityType: "orcamento",
+      entityId: orcamento.id,
+      metadata: { status, valor_final },
+      userId,
+      perfuradorId: perfurador.id,
+    });
+
     return { orcamento: orcamento as Orcamento, error: null };
   } catch (err) {
     return { orcamento: null, error: (err as Error).message };
@@ -142,7 +153,7 @@ export async function updateOrcamento(
       return { orcamento: null, error: parsed.error.issues[0].message };
     }
 
-    const { supabase, perfurador } = await getAuthenticatedPerfurador();
+    const { supabase, perfurador, userId } = await getAuthenticatedPerfurador();
 
     const itens = parsed.data.itens;
     const valor_total = itens.reduce(
@@ -183,6 +194,16 @@ export async function updateOrcamento(
       .single();
 
     if (error) return { orcamento: null, error: error.message };
+
+    await logActivity({
+      action: "orcamento.update",
+      entityType: "orcamento",
+      entityId: id,
+      metadata: { status: status ?? null },
+      userId,
+      perfuradorId: perfurador.id,
+    });
+
     return { orcamento: orcamento as Orcamento, error: null };
   } catch (err) {
     return { orcamento: null, error: (err as Error).message };
@@ -194,7 +215,7 @@ export async function updateOrcamentoStatus(
   newStatus: StatusOrcamento,
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { supabase, perfurador } = await getAuthenticatedPerfurador();
+    const { supabase, perfurador, userId } = await getAuthenticatedPerfurador();
 
     const payload: Record<string, unknown> = { status: newStatus };
     if (newStatus === "enviado") payload.enviado_em = new Date().toISOString();
@@ -208,6 +229,16 @@ export async function updateOrcamentoStatus(
       .eq("perfurador_id", perfurador.id);
 
     if (error) return { success: false, error: error.message };
+
+    await logActivity({
+      action: "orcamento.update",
+      entityType: "orcamento",
+      entityId: id,
+      metadata: { status: newStatus },
+      userId,
+      perfuradorId: perfurador.id,
+    });
+
     return { success: true, error: null };
   } catch (err) {
     return { success: false, error: (err as Error).message };
@@ -218,7 +249,7 @@ export async function deleteOrcamento(
   id: string,
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { supabase, perfurador } = await getAuthenticatedPerfurador();
+    const { supabase, perfurador, userId } = await getAuthenticatedPerfurador();
 
     // Desvincular serviços associados antes de excluir
     await supabase
@@ -234,6 +265,15 @@ export async function deleteOrcamento(
       .eq("perfurador_id", perfurador.id);
 
     if (error) return { success: false, error: error.message };
+
+    await logActivity({
+      action: "orcamento.delete",
+      entityType: "orcamento",
+      entityId: id,
+      userId,
+      perfuradorId: perfurador.id,
+    });
+
     return { success: true, error: null };
   } catch (err) {
     return { success: false, error: (err as Error).message };

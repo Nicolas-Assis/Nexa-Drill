@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { logActivity } from "@/lib/activity";
 import type { PerfilFormData } from "@/lib/validations";
 
 export async function uploadLogo(
@@ -89,6 +90,13 @@ export async function updatePerfurador(
       }
       return { success: false, error: error.message };
     }
+
+    await logActivity({
+      action: "perfil.update",
+      entityType: "perfil",
+      metadata: { nome: data.nome, nome_empresa: data.nome_empresa },
+      userId,
+    });
 
     return { success: true, error: null };
   } catch (err) {

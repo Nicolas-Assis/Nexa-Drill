@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { logActivity } from "@/lib/activity";
 import { firstOf } from "@/lib/utils";
 import type { Servico, Cliente, Orcamento } from "@/types";
 
@@ -83,7 +84,7 @@ export async function createServico(data: ServicoCreateData): Promise<{
   error: string | null;
 }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { data: servico, error } = await supabase
       .from("servicos")
@@ -95,6 +96,16 @@ export async function createServico(data: ServicoCreateData): Promise<{
       .single();
 
     if (error) return { servico: null, error: error.message };
+
+    await logActivity({
+      action: "servico.create",
+      entityType: "servico",
+      entityId: servico.id,
+      metadata: { status: data.status, valor: data.valor },
+      userId,
+      perfuradorId,
+    });
+
     return { servico: servico as Servico, error: null };
   } catch (err) {
     return { servico: null, error: (err as Error).message };
@@ -108,7 +119,7 @@ export async function updateServico(
   data: ServicoUpdateData,
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { error } = await supabase
       .from("servicos")
@@ -117,6 +128,15 @@ export async function updateServico(
       .eq("perfurador_id", perfuradorId);
 
     if (error) return { success: false, error: error.message };
+
+    await logActivity({
+      action: "servico.update",
+      entityType: "servico",
+      entityId: id,
+      userId,
+      perfuradorId,
+    });
+
     return { success: true, error: null };
   } catch (err) {
     return { success: false, error: (err as Error).message };
@@ -157,7 +177,7 @@ export async function concluirServico(
       return { success: false, error: parsed.error.issues[0].message };
     }
 
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     // Tudo numa transação (fn_concluir_servico): valida posse, aborta se já
     // concluído (anti-retry), cria parcelas + receitas e conclui o serviço.
@@ -183,6 +203,15 @@ export async function concluirServico(
       return { success: false, error: msg };
     }
 
+    await logActivity({
+      action: "servico.update",
+      entityType: "servico",
+      entityId: servicoId,
+      metadata: { concluido: true, parcelas: parsed.data.parcelas.length },
+      userId,
+      perfuradorId,
+    });
+
     revalidatePath(`/dashboard/servicos/${servicoId}`);
     revalidatePath("/dashboard/receber");
     return { success: true, error: null };
@@ -196,7 +225,7 @@ export async function cancelarServico(
   id: string,
 ): Promise<{ success: boolean; error: string | null }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { error } = await supabase
       .from("servicos")
@@ -205,6 +234,16 @@ export async function cancelarServico(
       .eq("perfurador_id", perfuradorId);
 
     if (error) return { success: false, error: error.message };
+
+    await logActivity({
+      action: "servico.update",
+      entityType: "servico",
+      entityId: id,
+      metadata: { status: "cancelado" },
+      userId,
+      perfuradorId,
+    });
+
     return { success: true, error: null };
   } catch (err) {
     return { success: false, error: (err as Error).message };
@@ -215,7 +254,7 @@ export async function deleteServico(id: string): Promise<{
   error: string | null;
 }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { error } = await supabase
       .from("servicos")
@@ -224,6 +263,15 @@ export async function deleteServico(id: string): Promise<{
       .eq("perfurador_id", perfuradorId);
 
     if (error) return { error: error.message };
+
+    await logActivity({
+      action: "servico.delete",
+      entityType: "servico",
+      entityId: id,
+      userId,
+      perfuradorId,
+    });
+
     return { error: null };
   } catch (err) {
     return { error: (err as Error).message };

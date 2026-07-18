@@ -99,6 +99,33 @@ export type AsaasPayment = {
   invoiceUrl?: string | null;
   bankSlipUrl?: string | null;
   value?: number;
+  // Presentes em cobranças geradas por assinatura (roteamento no webhook).
+  subscription?: string | null;
+  externalReference?: string | null;
+  billingType?: string | null;
+  dueDate?: string | null;
+  paymentDate?: string | null;
+};
+
+export type AsaasSubscriptionCycle =
+  | "WEEKLY"
+  | "BIWEEKLY"
+  | "MONTHLY"
+  | "BIMONTHLY"
+  | "QUARTERLY"
+  | "SEMIANNUALLY"
+  | "YEARLY";
+
+export type AsaasSubscription = {
+  id: string;
+  status: string; // ACTIVE | EXPIRED | INACTIVE
+  customer?: string;
+  billingType?: string;
+  cycle?: string;
+  value?: number;
+  nextDueDate?: string | null;
+  externalReference?: string | null;
+  deleted?: boolean;
 };
 
 export type AsaasPixQrCode = {
@@ -168,4 +195,70 @@ export async function getPaymentByExternalReference(
     { method: "GET" },
   );
   return res.data?.[0] ?? null;
+}
+
+// ── Assinaturas (recorrência da plataforma → perfurador) ─────────────────────
+// Mesma conta Asaas das parcelas; o roteamento no webhook é por
+// payment.subscription. Convenção de externalReference: "assinatura:<id>".
+
+export async function createSubscription(input: {
+  customer: string;
+  billingType: AsaasBillingType;
+  value: number;
+  nextDueDate: string; // YYYY-MM-DD (data da 1ª cobrança)
+  cycle: AsaasSubscriptionCycle;
+  description?: string | null;
+  externalReference?: string | null;
+}): Promise<AsaasSubscription> {
+  return asaasFetch<AsaasSubscription>("/subscriptions", {
+    method: "POST",
+    body: JSON.stringify({
+      customer: input.customer,
+      billingType: input.billingType,
+      value: input.value,
+      nextDueDate: input.nextDueDate,
+      cycle: input.cycle,
+      description: input.description ?? undefined,
+      externalReference: input.externalReference ?? undefined,
+    }),
+  });
+}
+
+export async function getSubscription(id: string): Promise<AsaasSubscription> {
+  return asaasFetch<AsaasSubscription>(`/subscriptions/${id}`, { method: "GET" });
+}
+
+export async function updateSubscription(
+  id: string,
+  input: {
+    value?: number;
+    billingType?: AsaasBillingType;
+    nextDueDate?: string;
+    cycle?: AsaasSubscriptionCycle;
+    status?: "ACTIVE" | "INACTIVE";
+    description?: string | null;
+  },
+): Promise<AsaasSubscription> {
+  return asaasFetch<AsaasSubscription>(`/subscriptions/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function cancelSubscription(
+  id: string,
+): Promise<{ deleted: boolean; id: string }> {
+  return asaasFetch<{ deleted: boolean; id: string }>(`/subscriptions/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function listSubscriptionPayments(
+  id: string,
+): Promise<AsaasPayment[]> {
+  const res = await asaasFetch<{ data: AsaasPayment[] }>(
+    `/subscriptions/${id}/payments`,
+    { method: "GET" },
+  );
+  return res.data ?? [];
 }

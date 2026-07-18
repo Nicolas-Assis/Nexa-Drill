@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedPerfurador } from "@/lib/get-perfurador";
+import { logActivity } from "@/lib/activity";
 import { firstOf } from "@/lib/utils";
 import type { LancamentoFormData } from "@/lib/validations";
 import type { Financeiro } from "@/types";
@@ -84,7 +85,7 @@ export async function createLancamento(data: LancamentoFormData): Promise<{
   error: string | null;
 }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { data: lancamento, error } = await supabase
       .from("financeiro")
@@ -101,6 +102,16 @@ export async function createLancamento(data: LancamentoFormData): Promise<{
       .single();
 
     if (error) return { lancamento: null, error: error.message };
+
+    await logActivity({
+      action: "financeiro.create",
+      entityType: "financeiro",
+      entityId: lancamento.id,
+      metadata: { tipo: data.tipo, valor: data.valor },
+      userId,
+      perfuradorId,
+    });
+
     return { lancamento: lancamento as Financeiro, error: null };
   } catch (err) {
     return { lancamento: null, error: (err as Error).message };
@@ -112,7 +123,7 @@ export async function updateLancamento(
   data: LancamentoFormData,
 ): Promise<{ error: string | null }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { error } = await supabase
       .from("financeiro")
@@ -128,6 +139,16 @@ export async function updateLancamento(
       .eq("perfurador_id", perfuradorId);
 
     if (error) return { error: error.message };
+
+    await logActivity({
+      action: "financeiro.update",
+      entityType: "financeiro",
+      entityId: id,
+      metadata: { tipo: data.tipo, valor: data.valor },
+      userId,
+      perfuradorId,
+    });
+
     return { error: null };
   } catch (err) {
     return { error: (err as Error).message };
@@ -138,7 +159,7 @@ export async function deleteLancamento(id: string): Promise<{
   error: string | null;
 }> {
   try {
-    const { supabase, perfuradorId } = await getAuthenticatedPerfurador();
+    const { supabase, perfuradorId, userId } = await getAuthenticatedPerfurador();
 
     const { error } = await supabase
       .from("financeiro")
@@ -147,6 +168,15 @@ export async function deleteLancamento(id: string): Promise<{
       .eq("perfurador_id", perfuradorId);
 
     if (error) return { error: error.message };
+
+    await logActivity({
+      action: "financeiro.delete",
+      entityType: "financeiro",
+      entityId: id,
+      userId,
+      perfuradorId,
+    });
+
     return { error: null };
   } catch (err) {
     return { error: (err as Error).message };

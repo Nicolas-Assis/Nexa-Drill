@@ -131,3 +131,40 @@ export const perfilSchema = z.object({
 });
 
 export type PerfilFormData = z.infer<typeof perfilSchema>;
+
+// ============================================================
+// Painel Admin — planos e gestão de assinatura
+// ============================================================
+
+export const planoSchema = z.object({
+  nome: z
+    .string()
+    .trim()
+    .min(2, "Nome deve ter no mínimo 2 caracteres")
+    .max(80, "Nome muito longo"),
+  slug: z
+    .string()
+    .trim()
+    .min(2, "Slug deve ter no mínimo 2 caracteres")
+    .max(50, "Slug muito longo")
+    .regex(/^[a-z0-9-]+$/, "Use apenas letras minúsculas, números e hífens"),
+  descricao: z.string().trim().max(300, "Descrição muito longa").optional().or(z.literal("")),
+  preco_mensal: z.number().min(0, "Preço inválido"),
+  preco_anual: z.number().min(0, "Preço inválido").optional(),
+  recursos: z.array(z.string().trim().min(1)).default([]),
+  destaque: z.boolean().default(false),
+  ativo: z.boolean().default(true),
+  ordem: z.number().int().min(0).default(0),
+});
+
+export type PlanoFormData = z.infer<typeof planoSchema>;
+
+export const gerenciarAssinaturaSchema = z.object({
+  plano_id: z.string().min(1, "Selecione um plano"),
+  ciclo: z.enum(["mensal", "anual"]),
+  billing_type: z.enum(["PIX", "BOLETO", "CREDIT_CARD", "UNDEFINED"]),
+  // Ação: cobrar via Asaas (recorrente) ou apenas conceder acesso (cortesia/trial).
+  modo: z.enum(["cobrar", "cortesia"]),
+});
+
+export type GerenciarAssinaturaFormData = z.infer<typeof gerenciarAssinaturaSchema>;

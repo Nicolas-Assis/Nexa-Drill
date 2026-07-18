@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { emailOTP } from "better-auth/plugins";
+import { admin, emailOTP } from "better-auth/plugins";
 import nodemailer from "nodemailer";
 import { pool } from "./db";
 
@@ -57,6 +57,12 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
   },
   plugins: [
+    // Painel admin: papéis (role) + suspender/banir (bloqueia login e revoga
+    // sessões automaticamente). Colunas criadas na migration 015.
+    admin({
+      defaultRole: "user",
+      adminRoles: ["admin"],
+    }),
     emailOTP({
       otpLength: 6,
       expiresIn: 600,
@@ -101,6 +107,25 @@ export const auth = betterAuth({
             );
           } catch (err) {
             console.error("[better-auth] Erro ao criar perfurador:", err);
+          }
+        },
+      },
+    },
+    session: {
+      create: {
+        after: async (session) => {
+          // Registra cada login no histórico de atividade do painel admin.
+          try {
+            await pool.query(
+              `INSERT INTO public.activity_logs
+                 (user_id, perfurador_id, event_type, action, ip, user_agent)
+               VALUES
+                 ($1, (SELECT id FROM public.perfuradores WHERE auth_id = $1),
+                  'login', 'auth.login', $2, $3)`,
+              [session.userId, session.ipAddress || null, session.userAgent || null],
+            );
+          } catch (err) {
+            console.error("[better-auth] Erro ao registrar login:", err);
           }
         },
       },
